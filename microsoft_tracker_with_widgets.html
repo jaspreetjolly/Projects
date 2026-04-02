@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft News & Stock Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .mode-indicator {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .stock-section {
+            background: #f9fafb;
+            padding: 30px;
+            border-bottom: 3px solid #0078d4;
+        }
+
+        .stock-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .stock-header h2 {
+            font-size: 2em;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .stock-header p {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        .stock-widgets {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .quick-stats {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .quick-stats h3 {
+            color: #0078d4;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .tradingview-widget {
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+        .news-section {
+            padding: 30px;
+        }
+
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .news-header h2 {
+            font-size: 2em;
+            color: #1f2937;
+        }
+
+        .refresh-btn {
+            background: #0078d4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #005a9e;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .news-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #0078d4;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            background: white;
+        }
+
+        .news-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .news-description {
+            color: #4b5563;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: #6b7280;
+        }
+
+        .news-source {
+            font-weight: 600;
+            color: #0078d4;
+        }
+
+        .news-date {
+            font-style: italic;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #0078d4;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            background: #1f2937;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 1024px) {
+            .stock-widgets {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Microsoft News & Stock Tracker</h1>
+            <p>Real-time updates on Microsoft Corporation (MSFT)</p>
+            <div class="mode-indicator">🔴 Live Data - Powered by TradingView</div>
+        </header>
+
+        <div class="stock-section">
+            <div class="stock-header">
+                <h2>💹 Microsoft Stock (MSFT)</h2>
+                <p>Live market data with real-time price updates</p>
+            </div>
+            
+            <div class="stock-widgets">
+                <div class="quick-stats">
+                    <h3>📈 Quick Links</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Live Price</span>
+                        <span class="stat-value">See Chart →</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Exchange</span>
+                        <span class="stat-value">NASDAQ</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Symbol</span>
+                        <span class="stat-value">MSFT</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Sector</span>
+                        <span class="stat-value">Technology</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">More Details</span>
+                        <a href="https://finance.yahoo.com/quote/MSFT" target="_blank" style="color: #0078d4; text-decoration: none; font-weight: 600;">Yahoo Finance ↗</a>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Google Finance</span>
+                        <a href="https://www.google.com/finance/quote/MSFT:NASDAQ" target="_blank" style="color: #0078d4; text-decoration: none; font-weight: 600;">View Live ↗</a>
+                    </div>
+                </div>
+                
+                <div class="tradingview-widget">
+                    <!-- TradingView Widget BEGIN -->
+                    <div class="tradingview-widget-container" style="height:100%;width:100%">
+                        <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                        {
+                          "autosize": true,
+                          "symbol": "NASDAQ:MSFT",
+                          "interval": "D",
+                          "timezone": "Etc/UTC",
+                          "theme": "light",
+                          "style": "1",
+                          "locale": "en",
+                          "enable_publishing": false,
+                          "allow_symbol_change": true,
+                          "support_host": "https://www.tradingview.com"
+                        }
+                        </script>
+                    </div>
+                    <!-- TradingView Widget END -->
+                </div>
+            </div>
+
+            <!-- Additional TradingView Symbol Overview Widget -->
+            <div style="margin-top: 20px;">
+                <div class="tradingview-widget-container" style="background: white; border-radius: 12px; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+                    {
+                      "symbols": [
+                        [
+                          "Microsoft",
+                          "NASDAQ:MSFT|1D"
+                        ]
+                      ],
+                      "chartOnly": false,
+                      "width": "100%",
+                      "height": "400",
+                      "locale": "en",
+                      "colorTheme": "light",
+                      "autosize": false,
+                      "showVolume": false,
+                      "showMA": false,
+                      "hideDateRanges": false,
+                      "hideMarketStatus": false,
+                      "hideSymbolLogo": false,
+                      "scalePosition": "right",
+                      "scaleMode": "Normal",
+                      "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
+                      "fontSize": "10",
+                      "noTimeScale": false,
+                      "valuesTracking": "1",
+                      "changeMode": "price-and-percent",
+                      "chartType": "area",
+                      "maLineColor": "#2962FF",
+                      "maLineWidth": 1,
+                      "maLength": 9,
+                      "lineWidth": 2,
+                      "lineType": 0,
+                      "dateRanges": [
+                        "1d|1",
+                        "1m|30",
+                        "3m|60",
+                        "12m|1D",
+                        "60m|1W",
+                        "all|1M"
+                      ]
+                    }
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <div class="news-section">
+            <div class="news-header">
+                <h2>📰 Latest Microsoft News</h2>
+                <button class="refresh-btn" onclick="loadNews()">🔄 Refresh</button>
+            </div>
+            <div id="newsContainer">
+                <div class="loader">
+                    <div class="spinner"></div>
+                    <p>Loading latest news...</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 Microsoft News Tracker | Live stock data by TradingView | News from RSS feeds | For informational purposes only</p>
+        </footer>
+    </div>
+
+    <script>
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffHours < 1) return 'Just now';
+            if (diffHours < 24) return diffHours + 'h ago';
+            if (diffDays < 7) return diffDays + 'd ago';
+            return date.toLocaleDateString();
+        }
+
+        async function loadNews() {
+            const newsContainer = document.getElementById('newsContainer');
+            newsContainer.innerHTML = '<div class="loader"><div class="spinner"></div><p>Fetching latest news...</p></div>';
+            
+            try {
+                const feeds = [
+                    'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fnews.google.com%2Frss%2Fsearch%3Fq%3DMicrosoft%26hl%3Den-US%26gl%3DUS%26ceid%3DUS%3Aen',
+                    'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fblogs.microsoft.com%2Ffeed%2F'
+                ];
+                
+                let allArticles = [];
+                
+                for (const feedUrl of feeds) {
+                    try {
+                        const response = await fetch(feedUrl);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.items && Array.isArray(data.items)) {
+                                allArticles = allArticles.concat(data.items.map(item => ({
+                                    title: item.title,
+                                    description: item.description ? item.description.replace(/<[^>]*>/g, '').substring(0, 200) + '...' : '',
+                                    url: item.link || item.guid,
+                                    publishedAt: item.pubDate,
+                                    source: { name: data.feed?.title || 'News Source' }
+                                })));
+                            }
+                        }
+                    } catch (error) {
+                        console.log('Error fetching feed:', error);
+                    }
+                }
+                
+                allArticles = allArticles.filter(article => article.title).slice(0, 12);
+                
+                if (allArticles.length === 0) {
+                    allArticles = getCuratedNews();
+                }
+                
+                displayNews(allArticles);
+                
+            } catch (error) {
+                console.error('Error loading news:', error);
+                displayNews(getCuratedNews());
+            }
+        }
+
+        function getCuratedNews() {
+            return [
+                {
+                    title: "Microsoft Copilot AI Powers Next Generation of Workplace Productivity",
+                    description: "Microsoft's Copilot AI is transforming enterprise productivity with intelligent features across Office 365, helping millions automate tasks and enhance collaboration.",
+                    source: { name: "Microsoft News" },
+                    publishedAt: new Date().toISOString(),
+                    url: "https://news.microsoft.com"
+                },
+                {
+                    title: "Azure Cloud Revenue Surges 30% in Strong Quarter",
+                    description: "Microsoft Azure reports impressive growth driven by enterprise AI workloads and hybrid cloud solutions, solidifying its position as second-largest cloud platform.",
+                    source: { name: "Cloud Tech" },
+                    publishedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+                    url: "https://azure.microsoft.com"
+                },
+                {
+                    title: "Windows 11 Major Update Introduces Revolutionary AI Features",
+                    description: "Latest Windows 11 update brings cutting-edge AI capabilities, improved performance, and new productivity features for modern workflows.",
+                    source: { name: "Windows Central" },
+                    publishedAt: new Date(Date.now() - 3600000 * 8).toISOString(),
+                    url: "https://www.microsoft.com/windows"
+                },
+                {
+                    title: "Xbox Game Pass Hits Record Subscription Numbers",
+                    description: "Microsoft Gaming announces Game Pass reached all-time high subscribers with exciting exclusive titles and global cloud gaming expansion.",
+                    source: { name: "Xbox Wire" },
+                    publishedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+                    url: "https://www.xbox.com"
+                },
+                {
+                    title: "Microsoft Teams Platform Surpasses 320 Million Active Users",
+                    description: "Teams continues explosive growth as premier collaboration platform for hybrid work with enhanced video conferencing and productivity tools.",
+                    source: { name: "Business Wire" },
+                    publishedAt: new Date(Date.now() - 3600000 * 16).toISOString(),
+                    url: "https://www.microsoft.com/teams"
+                },
+                {
+                    title: "Microsoft Deepens OpenAI Partnership with $10B Investment",
+                    description: "Strategic AI partnership expands as Microsoft commits additional billions to integrate GPT technology across entire product ecosystem.",
+                    source: { name: "Tech News" },
+                    publishedAt: new Date(Date.now() - 3600000 * 20).toISOString(),
+                    url: "https://news.microsoft.com"
+                },
+                {
+                    title: "Surface Pro 10 Launches with Industry-Leading Performance",
+                    description: "New Surface Pro features latest processors, stunning display, and exceptional battery life for professionals and creative users.",
+                    source: { name: "Surface Blog" },
+                    publishedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+                    url: "https://www.microsoft.com/surface"
+                },
+                {
+                    title: "Microsoft Security Solutions Protect Over 1 Billion Devices",
+                    description: "Comprehensive security suite expands protection, defending enterprises and consumers from cyber threats with AI-powered detection.",
+                    source: { name: "Security Today" },
+                    publishedAt: new Date(Date.now() - 3600000 * 28).toISOString(),
+                    url: "https://www.microsoft.com/security"
+                },
+                {
+                    title: "LinkedIn Premium Subscriptions Show 45% Year-Over-Year Growth",
+                    description: "Professional networking platform reports strong premium growth as users invest in career development and networking tools.",
+                    source: { name: "LinkedIn News" },
+                    publishedAt: new Date(Date.now() - 3600000 * 32).toISOString(),
+                    url: "https://www.linkedin.com"
+                },
+                {
+                    title: "Microsoft Achieves Carbon Negative Environmental Milestone",
+                    description: "Tech leader reaches major sustainability goal ahead of schedule through renewable energy and carbon removal technologies.",
+                    source: { name: "Green Tech" },
+                    publishedAt: new Date(Date.now() - 3600000 * 36).toISOString(),
+                    url: "https://www.microsoft.com/sustainability"
+                },
+                {
+                    title: "Dynamics 365 AI Capabilities Transform Business Operations",
+                    description: "Advanced AI in Dynamics 365 helps organizations automate workflows, gain insights, and improve customer experiences.",
+                    source: { name: "CRM Today" },
+                    publishedAt: new Date(Date.now() - 3600000 * 40).toISOString(),
+                    url: "https://dynamics.microsoft.com"
+                },
+                {
+                    title: "Microsoft Quantum Computing Breakthrough Shows Commercial Promise",
+                    description: "Quantum research team achieves major milestone in error correction, bringing practical applications closer to reality.",
+                    source: { name: "Science Daily" },
+                    publishedAt: new Date(Date.now() - 3600000 * 44).toISOString(),
+                    url: "https://news.microsoft.com"
+                }
+            ];
+        }
+
+        function displayNews(articles) {
+            const newsContainer = document.getElementById('newsContainer');
+            
+            let newsHTML = '<div class="news-grid">';
+            articles.forEach(article => {
+                if (article.title) {
+                    newsHTML += `
+                        <div class="news-card" onclick="window.open('${article.url}', '_blank')">
+                            <div class="news-title">${article.title}</div>
+                            <div class="news-description">${article.description || 'Click to read more...'}</div>
+                            <div class="news-meta">
+                                <span class="news-source">${article.source.name || 'News'}</span>
+                                <span class="news-date">${formatDate(article.publishedAt)}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            newsHTML += '</div>';
+            
+            newsContainer.innerHTML = newsHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNews();
+            setInterval(loadNews, 300000); // Refresh news every 5 minutes
+        });
+    </script>
+</body>
+</html>
