@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copilot Unpacked — How Microsoft 365 Copilot Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0f4f8;--surface:#ffffff;--surface2:#e8eef5;--border:#d0dae6;
+  --accent:#0078d4;--accent2:#005ba4;--accent3:#6b21d6;
+  --text:#0f1923;--muted:#5a6a7e;--green:#16a34a;--yellow:#d97706;--red:#dc2626;--pink:#be185d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;cursor:none}
+
+.cursor{width:10px;height:10px;background:var(--accent);border-radius:50%;position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:multiply}
+.cursor-ring{width:34px;height:34px;border:1.5px solid rgba(0,120,212,.3);border-radius:50%;position:fixed;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .1s ease-out,top .1s ease-out}
+
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.15}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,120,212,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,120,212,.06) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;animation:gridDrift 25s linear infinite}
+@keyframes gridDrift{to{background-position:0 60px}}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;text-align:center;padding:2rem;overflow:hidden}
+.hero-glow{position:absolute;width:800px;height:800px;background:radial-gradient(circle,rgba(0,120,212,.07) 0%,transparent 65%);animation:pulse 5s ease-in-out infinite;pointer-events:none}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.08);opacity:1}}
+.hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;border:1px solid rgba(0,120,212,.25);padding:.4rem 1.1rem;border-radius:2px;margin-bottom:2rem;position:relative;z-index:1;animation:fadeUp .8s ease both}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(4.5rem,14vw,11rem);line-height:.9;letter-spacing:.02em;position:relative;z-index:1;animation:fadeUp .8s .1s ease both}
+.hero-title .blue{color:var(--accent)}
+.hero-title .cyan{-webkit-text-stroke:2px var(--accent);color:transparent}
+.hero-sub{font-size:1.1rem;font-weight:300;color:var(--muted);margin-top:1.5rem;max-width:520px;line-height:1.8;position:relative;z-index:1;animation:fadeUp .8s .2s ease both}
+.hero-wave-badge{margin-top:1.5rem;font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.15em;background:rgba(0,120,212,.1);border:1px solid rgba(0,120,212,.3);color:var(--accent);padding:.35rem 1rem;border-radius:2px;position:relative;z-index:1;animation:fadeUp .8s .3s ease both}
+.scroll-hint{position:absolute;bottom:2rem;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.2em;animation:bounce 2.5s ease-in-out infinite;z-index:1}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+.divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent)}
+
+section{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:6rem 2rem}
+.sec-tag{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);letter-spacing:.3em;text-transform:uppercase;margin-bottom:.75rem}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,6vw,4.5rem);line-height:1;margin-bottom:1.5rem}
+.sec-body{font-size:1.05rem;color:var(--muted);line-height:1.85;max-width:640px}
+
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* TIMELINE */
+.timeline{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:3rem;flex-wrap:wrap}
+.tl-item{flex:1;min-width:120px;padding:1rem .75rem;text-align:center;background:var(--surface);border-right:1px solid var(--border);font-size:.68rem;color:var(--muted);transition:all .25s;cursor:default}
+.tl-item:last-child{border-right:none}
+.tl-item:hover{background:rgba(0,120,212,.08);color:var(--accent)}
+.tl-year{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--text);display:block;margin-bottom:.2rem}
+.tl-hot{background:rgba(0,120,212,.08)!important}
+.tl-hot .tl-year{color:var(--accent)}
+.tl-fire{background:rgba(190,24,93,.06)!important}
+.tl-fire .tl-year{color:var(--pink)}
+
+/* ARCH FLOW */
+.arch-flow{margin-top:4rem;display:flex;flex-direction:column;position:relative}
+.arch-flow::before{content:'';position:absolute;left:31px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),var(--accent3),#3b82f6)}
+.arch-step{display:flex;gap:2rem;align-items:flex-start;padding:2rem 0;opacity:0;transform:translateX(-18px);transition:all .5s ease;cursor:pointer}
+.arch-step.visible{opacity:1;transform:translateX(0)}
+.step-num{width:62px;height:62px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:700;color:var(--accent);position:relative;z-index:1;transition:all .3s}
+.arch-step:hover .step-num{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 20px rgba(0,120,212,.3)}
+.step-content{flex:1;padding-top:.5rem}
+.step-content h3{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.03em;margin-bottom:.5rem}
+.step-content p{font-size:.93rem;color:var(--muted);line-height:1.75}
+.step-tags{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+.tag{font-family:'JetBrains Mono',monospace;font-size:.62rem;padding:.2rem .6rem;border-radius:2px;letter-spacing:.08em;text-transform:uppercase}
+.tag-blue{background:rgba(0,120,212,.1);color:var(--accent);border:1px solid rgba(0,120,212,.3)}
+.tag-purple{background:rgba(107,33,214,.1);color:var(--accent3);border:1px solid rgba(107,33,214,.25)}
+.tag-green{background:rgba(22,163,74,.1);color:var(--green);border:1px solid rgba(22,163,74,.25)}
+.tag-yellow{background:rgba(217,119,6,.1);color:var(--yellow);border:1px solid rgba(217,119,6,.25)}
+.tag-pink{background:rgba(190,24,93,.08);color:var(--pink);border:1px solid rgba(190,24,93,.2)}
+
+/* PIPELINE */
+.demo-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:4rem}
+.demo-toolbar{padding:.7rem 1.25rem;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot-r{background:#ef4444}.dot-y{background:#f59e0b}.dot-g{background:#22c55e}
+.demo-body{padding:2rem}
+.demo-prompt-row{display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.75rem}
+.demo-av{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;font-family:'JetBrains Mono',monospace}
+.av-user{background:var(--accent3)}.av-copilot{background:linear-gradient(135deg,var(--accent),#60a5fa)}
+.demo-bubble{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:4px;padding:1rem 1.25rem;font-size:.88rem;line-height:1.75;flex:1;white-space:pre-wrap}
+.demo-bubble.typing::after{content:'▋';color:var(--accent);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.pipe-row{display:flex;gap:0;margin:1.5rem 0;font-family:'JetBrains Mono',monospace;font-size:.65rem}
+.pipe-s{flex:1;padding:.7rem .4rem;text-align:center;border:1px solid #c8d5e0;background:var(--bg);position:relative;transition:all .3s;cursor:default}
+.pipe-s:not(:last-child)::after{content:'→';position:absolute;right:-9px;top:50%;transform:translateY(-50%);color:var(--accent);z-index:2;font-size:.9rem}
+.pipe-s:hover{background:rgba(0,120,212,.07);border-color:var(--accent)}
+.pi{font-size:1.2rem;margin-bottom:.25rem}.pn{color:var(--text);font-size:.7rem;margin-bottom:.1rem}.pl{color:var(--muted);font-size:.58rem;letter-spacing:.05em}
+.pipe-active{border-color:var(--accent)!important;background:rgba(0,120,212,.06)!important}
+.chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.chip{font-family:'JetBrains Mono',monospace;font-size:.63rem;padding:.25rem .7rem;border:1px solid #b0bec9;border-radius:2px;background:var(--bg);color:var(--muted);cursor:pointer;transition:all .2s}
+.chip:hover,.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,120,212,.07)}
+.run-btn{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.12em;background:var(--accent);color:#fff;border:none;padding:.6rem 1.4rem;border-radius:2px;cursor:pointer;transition:all .2s;margin-top:.75rem}
+.run-btn:hover{background:#005fa3;box-shadow:0 0 15px rgba(0,120,212,.3)}
+
+/* CONTEXT BARS */
+.ctx-box{margin-top:3rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2rem;font-family:'JetBrains Mono',monospace}
+.ctx-lbl{font-size:.65rem;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.5rem}
+.ctx-row{margin-bottom:1rem}
+.ctx-rl{font-size:.68rem;color:var(--muted);margin-bottom:.3rem;display:flex;justify-content:space-between}
+.ctx-track{height:8px;background:var(--bg);border-radius:2px;overflow:hidden}
+.ctx-fill{height:100%;border-radius:2px;width:0%;transition:width 1.6s cubic-bezier(.16,1,.3,1)}
+
+/* GROUNDING */
+.ground-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:3rem}
+.ground-box{border:1px solid var(--border);border-radius:4px;padding:1.5rem;background:var(--surface);opacity:0;transform:translateY(14px);transition:all .5s ease}
+.ground-box.visible{opacity:1;transform:translateY(0)}
+.ground-box h4{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;margin-bottom:.6rem;color:var(--accent)}
+.ground-box ul{list-style:none}
+.ground-box ul li{font-size:.83rem;color:var(--muted);padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:.5rem}
+.ground-box ul li::before{content:'─';color:var(--accent);flex-shrink:0}
+.sec-rail{display:flex;gap:1.5rem;align-items:flex-start;border:1px solid rgba(22,163,74,.25);background:rgba(22,163,74,.05);border-radius:4px;padding:1.5rem;margin-top:3rem}
+.sec-rail h4{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;color:var(--green);margin-bottom:.4rem}
+.sec-rail p{font-size:.88rem;color:var(--muted);line-height:1.75}
+
+/* ORCH */
+.orch-box{margin-top:3rem;padding:2rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;text-align:center}
+.orch-center{display:inline-block;width:110px;height:110px;background:linear-gradient(135deg,rgba(0,120,212,.15),rgba(107,33,214,.15));border:2px solid var(--accent);border-radius:50%;line-height:110px;font-size:2.4rem;margin-bottom:1.75rem;box-shadow:0 0 60px rgba(0,120,212,.2);animation:orbitGlow 3.5s ease-in-out infinite}
+@keyframes orbitGlow{0%,100%{box-shadow:0 0 30px rgba(0,120,212,.12)}50%{box-shadow:0 0 50px rgba(0,120,212,.25)}}
+.orch-label{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent);letter-spacing:.18em;margin-bottom:1.5rem}
+.orbit-row{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+.orbit-item{border:1px solid var(--border);border-radius:4px;padding:.7rem .9rem;background:var(--bg);font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);text-align:center;min-width:88px;transition:all .3s;cursor:default}
+.orbit-item:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-4px)}
+.orbit-item .oi{font-size:1.25rem;display:block;margin-bottom:.25rem}
+
+/* FEAT CARDS */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:3rem}
+.feat-card{background:var(--surface);padding:1.75rem;position:relative;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease,background .3s}
+.feat-card.visible{opacity:1;transform:translateY(0)}
+.feat-card:hover{background:rgba(0,120,212,.06)}
+.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),#60a5fa);transform:scaleX(0);transform-origin:left;transition:transform .4s ease}
+.feat-card:hover::before{transform:scaleX(1)}
+.fc-icon{font-size:1.8rem;margin-bottom:.9rem}
+.fc-title{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:.04em;margin-bottom:.4rem}
+.fc-body{font-size:.85rem;color:var(--muted);line-height:1.7}
+
+/* MODEL TIMELINE */
+.model-timeline{margin-top:3rem;display:flex;flex-direction:column;position:relative}
+.model-timeline::before{content:'';position:absolute;left:18px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),var(--accent3),var(--pink),#3b82f6)}
+.mt-item{display:flex;gap:1.5rem;align-items:flex-start;padding:1.5rem 0;opacity:0;transform:translateX(-14px);transition:all .5s ease}
+.mt-item.visible{opacity:1;transform:translateX(0)}
+.mt-dot{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;position:relative;z-index:1;border:2px solid var(--border);background:var(--surface)}
+.mt-info{flex:1;padding-top:.25rem}
+.mt-date{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.12em;margin-bottom:.2rem}
+.mt-name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.04em;margin-bottom:.3rem}
+.mt-desc{font-size:.84rem;color:var(--muted);line-height:1.7}
+.mt-pills{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
+.mpill{font-family:'JetBrains Mono',monospace;font-size:.58rem;padding:.15rem .5rem;border-radius:2px;letter-spacing:.07em}
+.mp-blue{background:rgba(0,120,212,.1);color:var(--accent);border:1px solid rgba(0,120,212,.3)}
+.mp-purple{background:rgba(107,33,214,.1);color:var(--accent3);border:1px solid rgba(107,33,214,.25)}
+.mp-green{background:rgba(22,163,74,.1);color:var(--green);border:1px solid rgba(22,163,74,.25)}
+.mp-yellow{background:rgba(217,119,6,.1);color:var(--yellow);border:1px solid rgba(217,119,6,.25)}
+.mp-pink{background:rgba(190,24,93,.08);color:var(--pink);border:1px solid rgba(190,24,93,.2)}
+.mt-latest .mt-dot{border-color:var(--accent);background:rgba(0,120,212,.08)}
+.mt-latest .mt-name{color:var(--accent)}
+.mt-fire .mt-dot{border-color:var(--pink);background:rgba(236,72,153,.08)}
+.mt-fire .mt-name{color:var(--pink)}
+
+.model-sel{margin-top:2.5rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.msel-top{padding:.6rem 1.25rem;font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--accent);letter-spacing:.15em;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)}
+.msel-row{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.msel-btn{padding:.6rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);cursor:pointer;border-right:1px solid var(--border);transition:all .2s;user-select:none}
+.msel-btn:hover{background:rgba(0,120,212,.07);color:var(--text)}
+.msel-active{background:rgba(0,120,212,.1)!important;color:var(--accent)!important}
+.msel-out{padding:.75rem 1.25rem;font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text);min-height:44px}
+
+/* AGENTS */
+.agent-split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:3rem}
+.agent-pane{border:1px solid var(--border);border-radius:4px;padding:1.75rem;background:var(--surface)}
+.ap-researcher{border-top:3px solid var(--accent)}
+.ap-analyst{border-top:3px solid var(--accent3)}
+.ap-hd{display:flex;gap:1rem;align-items:center;margin-bottom:1rem}
+.ap-icon{font-size:1.9rem}
+.ap-name{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:.04em}
+.ap-sub{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.08em}
+.ap-desc{font-size:.86rem;color:var(--muted);line-height:1.75;margin-bottom:1rem}
+.ap-list{list-style:none;padding:0;margin-bottom:1rem}
+.ap-list li{font-size:.82rem;color:var(--muted);padding:.25rem 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:.5rem}
+.ap-list li::before{content:'▸';color:var(--accent);flex-shrink:0}
+.ap-prompt{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);background:rgba(0,120,212,.06);border:1px solid rgba(0,120,212,.2);border-radius:3px;padding:.55rem .9rem;font-style:italic}
+
+/* NOTEBOOKS */
+.nb-demo{display:flex;margin-top:3rem;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface);min-height:300px}
+.nb-side{width:210px;flex-shrink:0;border-right:1px solid var(--border);padding:1.25rem;background:rgba(255,255,255,.01)}
+.nb-slbl{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:.2em;margin-bottom:.5rem}
+.nb-it{font-size:.78rem;color:var(--muted);padding:.3rem .5rem;border-radius:3px;cursor:pointer;transition:all .2s;margin-bottom:.1rem}
+.nb-it:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nb-active{background:rgba(0,120,212,.12)!important;color:var(--accent)!important}
+.nb-add{color:var(--accent);font-size:.72rem}
+.nb-main{flex:1;padding:1.75rem}
+.nb-title{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;margin-bottom:1rem;letter-spacing:.04em}
+.nb-chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.62rem;background:rgba(0,120,212,.07);border:1px solid rgba(0,120,212,.22);color:var(--accent);padding:.18rem .6rem;border-radius:2px;letter-spacing:.1em}
+.nb-feats{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.25rem}
+.nbf{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:.22rem .6rem;border-radius:2px}
+
+/* OFFICE GRID */
+.office-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;margin-top:3rem}
+.oc-card{border:1px solid var(--border);border-radius:4px;background:var(--surface);padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;transition:background .3s}
+.oc-card:hover{background:rgba(0,120,212,.06)}
+.oc-app{width:46px;height:46px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#fff}
+.oc-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.04em}
+.oc-status{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--green);margin-bottom:.5rem}
+.oc-desc{font-size:.83rem;color:var(--muted);line-height:1.65;margin-bottom:.7rem}
+.oc-list{list-style:none;padding:0}
+.oc-list li{font-size:.78rem;color:var(--muted);padding:.2rem 0;display:flex;gap:.5rem}
+.oc-list li::before{content:'▸';color:var(--accent);flex-shrink:0}
+
+/* ROSTER */
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:3rem}
+.rc{background:var(--surface);padding:1.5rem;transition:background .3s;cursor:default}
+.rc:hover{background:rgba(0,120,212,.06)}
+.rc-top{display:flex;gap:.9rem;align-items:center;margin-bottom:.7rem}
+.rc-icon{font-size:1.45rem}
+.rc-name{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:.04em}
+.rc-av{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.07em}
+.av-ga{color:var(--green)}.av-fr{color:#b45309}.av-new{color:var(--pink)}
+.rc-desc{font-size:.82rem;color:var(--muted);line-height:1.65}
+
+/* WORK IQ */
+.workiq-layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem;align-items:start}
+.wiq-signals{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.5rem;font-family:'JetBrains Mono',monospace}
+.wiq-slbl{font-size:.62rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:1rem}
+.wiq-row{display:flex;align-items:center;gap:.75rem;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.wiq-row:last-child{border-bottom:none}
+.wiq-bar-wrap{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.wiq-bar{height:100%;border-radius:3px}
+.wiq-src{font-size:.65rem;color:var(--muted);width:110px;flex-shrink:0}
+.wiq-pct{font-size:.65rem;color:var(--text);width:32px;text-align:right;flex-shrink:0}
+.wiq-features{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:2rem}
+.wiq-feat{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1rem}
+.wiq-feat h5{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--accent);margin-bottom:.3rem}
+.wiq-feat p{font-size:.8rem;color:var(--muted);line-height:1.65}
+.wiq-explain p{font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:1rem}
+
+/* AGENT 365 */
+.a365-layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem}
+.a365-pillars{display:flex;flex-direction:column;gap:1rem}
+.a365-pillar{border:1px solid var(--border);border-radius:4px;padding:1.25rem;background:var(--surface);position:relative;overflow:hidden;transition:background .3s}
+.a365-pillar:hover{background:rgba(0,120,212,.06)}
+.a365-pillar::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.p-observe::before{background:var(--accent)}.p-govern::before{background:var(--accent3)}.p-secure::before{background:var(--green)}.p-manage::before{background:var(--yellow)}
+.a365-pillar h4{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;margin-bottom:.3rem}
+.a365-pillar p{font-size:.82rem;color:var(--muted);line-height:1.65}
+.a365-spec{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.75rem}
+.a365-spec h3{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.04em;margin-bottom:1rem}
+.a365-item{display:flex;gap:.75rem;align-items:flex-start;padding:.65rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.a365-item:last-child{border-bottom:none}
+.a365-em{font-size:1.1rem;flex-shrink:0}
+.a365-txt strong{font-size:.85rem;display:block;margin-bottom:.2rem}
+.a365-txt span{font-size:.78rem;color:var(--muted);line-height:1.65}
+.a365-price-box{margin-top:1.5rem;background:rgba(0,120,212,.07);border:1px solid rgba(0,120,212,.25);border-radius:4px;padding:1rem 1.25rem}
+.a365-price-box p{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent);margin-bottom:.25rem}
+.a365-price-box span{font-size:.82rem;color:var(--muted)}
+
+/* COWORK */
+.cowork-layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem}
+.cw-flow{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.75rem}
+.cw-flow h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:1.25rem;letter-spacing:.04em}
+.cw-step{display:flex;gap:.9rem;margin-bottom:1rem;align-items:flex-start}
+.cw-step-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;flex-shrink:0}
+.cw-step-txt strong{font-size:.85rem;display:block;margin-bottom:.15rem}
+.cw-step-txt p{font-size:.78rem;color:var(--muted);line-height:1.6}
+.cw-diff{display:flex;flex-direction:column;gap:1rem}
+.cw-diff-card{border:1px solid var(--border);border-radius:4px;padding:1.25rem;background:var(--surface)}
+.cw-diff-card h4{font-family:'Bebas Neue',sans-serif;font-size:1rem;margin-bottom:.4rem}
+.cw-diff-card p{font-size:.82rem;color:var(--muted);line-height:1.65}
+.cw-highlight{border-color:rgba(0,120,212,.4)!important;background:rgba(0,120,212,.05)!important}
+.cw-highlight h4{color:var(--accent)}
+.cowork-rail{display:flex;gap:1.25rem;align-items:flex-start;border:1px solid rgba(190,24,93,.2);background:rgba(190,24,93,.04);border-radius:4px;padding:1.5rem;margin-top:2rem}
+.cowork-rail h4{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--pink);margin-bottom:.3rem}
+.cowork-rail p{font-size:.86rem;color:var(--muted);line-height:1.75}
+
+/* E7 */
+.e7-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:3rem}
+.e7-head{padding:1.5rem;background:linear-gradient(135deg,rgba(0,120,212,.12),rgba(107,33,214,.07));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1.25rem}
+.e7-badge{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:.04em;color:var(--accent)}
+.e7-hd h3{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.04em}
+.e7-hd p{font-size:.83rem;color:var(--muted);margin-top:.2rem}
+.e7-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border)}
+.e7-item{background:var(--surface2);padding:1.25rem}
+.e7-item .ei-icon{font-size:1.4rem;margin-bottom:.5rem}
+.e7-item .ei-name{font-family:'Bebas Neue',sans-serif;font-size:.95rem;margin-bottom:.25rem}
+.e7-item .ei-desc{font-size:.76rem;color:var(--muted);line-height:1.6}
+.e7-price{padding:1.25rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.e7-price-lbl{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:.12em}
+.e7-price-val{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--accent)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+footer{border-top:1px solid var(--border);padding:3rem 2rem;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);position:relative;z-index:1;background:var(--surface)}
+footer span{color:var(--accent)}
+
+@media(max-width:768px){
+  .arch-flow::before{left:23px}
+  .step-num{width:46px;height:46px;font-size:.72rem}
+  .pipe-row{flex-direction:column}
+  .pipe-s:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-12px;transform:translateX(-50%)}
+  .ground-grid,.agent-split,.workiq-layout,.a365-layout,.cowork-layout{grid-template-columns:1fr}
+  .nb-demo{flex-direction:column}
+  .nb-side{width:100%;border-right:none;border-bottom:1px solid var(--border)}
+  .wiq-features{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow">// Under the Hood · Updated March 2026</div>
+  <h1 class="hero-title"><span class="blue">COPILOT</span><br><span class="cyan">UNPACKED</span></h1>
+  <p class="hero-sub">A comprehensive deep-dive into how Microsoft 365 Copilot works — from architecture to Wave 3's latest frontier innovations.</p>
+  <div class="hero-wave-badge">⚡ Wave 3 · GPT-5.3/5.4 · Cowork · Agent 365 · Work IQ · Claude · M365 E7</div>
+  <div class="scroll-hint">↓ &nbsp; SCROLL TO EXPLORE</div>
+</div>
+
+<!-- 01. OVERVIEW -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 01. Overview</div>
+  <h2 class="sec-title">What Is Copilot?</h2>
+  <p class="sec-body fade-in">Microsoft 365 Copilot is the AI system embedded across Microsoft 365 — Word, Excel, Teams, Outlook, and beyond. It combines state-of-the-art language models with your organisation's data through Work IQ and Microsoft Graph, within your security and compliance boundaries. Wave 3 (March 2026) transforms it from conversational assistant to autonomous agent capable of multi-step, multi-hour work.</p>
+  <div class="timeline fade-in" style="transition-delay:.1s">
+    <div class="tl-item"><span class="tl-year">Aug 2025</span>GPT-5 GA in Copilot Chat</div>
+    <div class="tl-item"><span class="tl-year">Nov 2025</span>Ignite: Office Agents, Agent 365 preview</div>
+    <div class="tl-item"><span class="tl-year">Dec 2025</span>GPT-5.2, Sales Agent, Claude Sonnet 4.5</div>
+    <div class="tl-item tl-hot"><span class="tl-year">Mar 3 2026</span>GPT-5.3 Instant in Copilot</div>
+    <div class="tl-item tl-hot"><span class="tl-year">Mar 7 2026</span>GPT-5.4 Thinking lands</div>
+    <div class="tl-item tl-fire"><span class="tl-year">Mar 9 2026</span>Wave 3: Cowork + Work IQ + E7</div>
+    <div class="tl-item tl-fire"><span class="tl-year">Mar 30 2026</span>Cowork Frontier · Critique</div>
+  </div>
+</section>
+
+<!-- 02. ARCHITECTURE -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 02. Architecture</div>
+  <h2 class="sec-title">How a Prompt Flows</h2>
+  <p class="sec-body fade-in">Every Copilot interaction passes through a multi-stage orchestration pipeline. Semantic Kernel routes each request through safety filters, Work IQ retrieval, model selection, and response delivery. Wave 3 adds Cowork's task-plan execution layer for long-running work.</p>
+  <div class="arch-flow">
+    <div class="arch-step"><div class="step-num">01</div><div class="step-content"><h3>User Prompt</h3><p>Natural language input from Word, Excel, Teams, Outlook, or the new Cowork canvas. With Wave 3, prompts can describe multi-step outcomes that run for minutes or hours — not just single-turn questions.</p><div class="step-tags"><span class="tag tag-blue">Natural Language</span><span class="tag tag-yellow">M365 App Surface</span><span class="tag tag-pink">Wave 3: Cowork Canvas</span></div></div></div>
+    <div class="arch-step"><div class="step-num">02</div><div class="step-content"><h3>Pre-Processing &amp; Safety</h3><p>Content safety filters run, PII is detected and masked, and Conditional Access + entitlement checks validate the user. Enterprise Data Protection policies apply before any data retrieval begins.</p><div class="step-tags"><span class="tag tag-blue">Content Safety</span><span class="tag tag-purple">PII Detection</span><span class="tag tag-green">CA + EDP Check</span></div></div></div>
+    <div class="arch-step"><div class="step-num">03</div><div class="step-content"><h3>Work IQ &amp; Graph Retrieval</h3><p>Work IQ — Microsoft's intelligence layer — synthesises signals across emails, meetings, chats, files, and contacts. The Semantic Index (vector-based) retrieves the most relevant chunks, permission-scoped to the signed-in user only.</p><div class="step-tags"><span class="tag tag-blue">Work IQ</span><span class="tag tag-purple">Semantic Index</span><span class="tag tag-green">Permission-scoped</span><span class="tag tag-pink">Wave 3: Full org context</span></div></div></div>
+    <div class="arch-step"><div class="step-num">04</div><div class="step-content"><h3>Prompt Grounding &amp; Context Assembly</h3><p>The raw prompt, retrieved Graph content, active document, conversation history, and system instructions are assembled into a grounded prompt. For Cowork tasks, a structured task plan and checkpoint instructions are also included.</p><div class="step-tags"><span class="tag tag-blue">RAG Grounding</span><span class="tag tag-yellow">Context Window</span><span class="tag tag-pink">Task Planning (Cowork)</span></div></div></div>
+    <div class="arch-step"><div class="step-num">05</div><div class="step-content"><h3>Model Selection &amp; Inference</h3><p>Semantic Kernel selects the optimal model — GPT-5.3 Quick Response, GPT-5.4 Think Deeper, Claude Sonnet 4.5, or others. GPT-5's real-time router auto-selects Instant vs Thinking per prompt. All (Azure OpenAI/ GPT) inference runs inside Microsoft's Azure tenant with zero data leakage to public APIs.</p><div class="step-tags"><span class="tag tag-blue">GPT-5.3 / 5.4</span><span class="tag tag-purple">Claude Sonnet 4.5</span><span class="tag tag-green">Azure OpenAI</span><span class="tag tag-yellow">Auto Model Routing</span></div></div></div>
+    <div class="arch-step"><div class="step-num">06</div><div class="step-content"><h3>Post-Processing &amp; Delivery</h3><p>Output passes through a second safety filter, formatted for the target app, delivered with citations. For Cowork, the orchestrator executes the next action in the task plan, checks back at configured checkpoints, and continues — audited at every step via Purview.</p><div class="step-tags"><span class="tag tag-blue">Output Safety</span><span class="tag tag-yellow">Citations</span><span class="tag tag-pink">Checkpoint Execution</span><span class="tag tag-green">Purview Audit</span></div></div></div>
+  </div>
+</section>
+
+<!-- 03. PIPELINE SIM -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 03. Live Simulation</div>
+  <h2 class="sec-title">Prompt Pipeline</h2>
+  <p class="sec-body fade-in">Select a scenario and run the pipeline to see how Copilot orchestrates each stage — including a Cowork multi-step scenario.</p>
+  <div class="demo-box fade-in" style="transition-delay:.15s">
+    <div class="demo-toolbar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span style="margin-left:.5rem">copilot.pipeline.sim — Microsoft 365 Copilot · Wave 3</span></div>
+    <div class="demo-body">
+      <div class="chips" id="scenarioPicker">
+        <div class="chip active" data-idx="0">📧 Summarise emails</div>
+        <div class="chip" data-idx="1">📊 Analyse data</div>
+        <div class="chip" data-idx="2">🔬 Researcher brief</div>
+        <div class="chip" data-idx="3">🏗️ Cowork multi-step</div>
+      </div>
+      <div class="demo-prompt-row">
+        <div class="demo-av av-user">YOU</div>
+        <div class="demo-bubble" id="userBubble">Summarise my unread emails from this week and highlight any action items.</div>
+      </div>
+      <div class="pipe-row" id="pipeVis">
+        <div class="pipe-s" id="ps0"><div class="pi">✏️</div><div class="pn">INPUT</div><div class="pl">Prompt</div></div>
+        <div class="pipe-s" id="ps1"><div class="pi">🛡️</div><div class="pn">SAFETY</div><div class="pl">Pre-filter</div></div>
+        <div class="pipe-s" id="ps2"><div class="pi">💡</div><div class="pn">WORK IQ</div><div class="pl">Graph</div></div>
+        <div class="pipe-s" id="ps3"><div class="pi">📐</div><div class="pn">GROUND</div><div class="pl">Context</div></div>
+        <div class="pipe-s" id="ps4"><div class="pi">🧠</div><div class="pn">MODEL</div><div class="pl">Inference</div></div>
+        <div class="pipe-s" id="ps5"><div class="pi">✅</div><div class="pn">OUTPUT</div><div class="pl">Deliver</div></div>
+      </div>
+      <div class="demo-prompt-row">
+        <div class="demo-av av-copilot">✨</div>
+        <div class="demo-bubble" id="responseBubble">Click "Run Pipeline" to simulate Copilot's response…</div>
+      </div>
+      <button class="run-btn" id="runBtn">▶ RUN PIPELINE</button>
+    </div>
+  </div>
+</section>
+
+<!-- 04. CONTEXT WINDOW -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 04. Context Window</div>
+  <h2 class="sec-title">What Goes In?</h2>
+  <p class="sec-body fade-in">The grounded prompt sent to the LLM is a carefully assembled package. Wave 3 expands context with richer Work IQ signals and Cowork task state.</p>
+  <div class="ctx-box fade-in" id="ctxViz">
+    <div class="ctx-lbl">Context Window Composition — approximate token allocation</div>
+    <div class="ctx-row"><div class="ctx-rl"><span>System Instructions &amp; Safety Rules</span><span style="color:var(--text)">~7%</span></div><div class="ctx-track"><div class="ctx-fill" data-width="7" style="background:linear-gradient(90deg,#0078d4,#50e6ff)"></div></div></div>
+    <div class="ctx-row"><div class="ctx-rl"><span>Work IQ Signals (Graph: emails, chats, meetings)</span><span style="color:var(--text)">~42%</span></div><div class="ctx-track"><div class="ctx-fill" data-width="42" style="background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div></div></div>
+    <div class="ctx-row"><div class="ctx-rl"><span>Active Document / App Context</span><span style="color:var(--text)">~28%</span></div><div class="ctx-track"><div class="ctx-fill" data-width="28" style="background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div></div>
+    <div class="ctx-row"><div class="ctx-rl"><span>Conversation &amp; Cowork Task History</span><span style="color:var(--text)">~16%</span></div><div class="ctx-track"><div class="ctx-fill" data-width="16" style="background:linear-gradient(90deg,#22c55e,#4ade80)"></div></div></div>
+    <div class="ctx-row"><div class="ctx-rl"><span>User's Raw Prompt</span><span style="color:var(--text)">~7%</span></div><div class="ctx-track"><div class="ctx-fill" data-width="7" style="background:linear-gradient(90deg,#ef4444,#f87171)"></div></div></div>
+  </div>
+</section>
+
+<!-- 05. GROUNDING -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 05. Data Grounding</div>
+  <h2 class="sec-title">Where Does Data Come From?</h2>
+  <p class="sec-body fade-in">Copilot grounds responses in your organisational data — retrieved in real time, scoped to the signed-in user's permissions. Wave 3 added Dynamics 365 and Power Apps as native grounding sources.</p>
+  <div class="ground-grid">
+    <div class="ground-box"><h4>✉️ Outlook &amp; Email</h4><ul><li>Unread &amp; flagged emails</li><li>Sent mail for tone matching</li><li>Calendar invites &amp; attendees</li><li>RSVPs &amp; scheduling context</li></ul></div>
+    <div class="ground-box"><h4>💬 Teams &amp; Chats</h4><ul><li>Channel conversations &amp; threads</li><li>Meeting transcripts (if enabled)</li><li>1:1 chat messages</li><li>Shared files in chat</li></ul></div>
+    <div class="ground-box"><h4>📁 SharePoint &amp; OneDrive</h4><ul><li>Documents, decks, spreadsheets</li><li>Shared with me files</li><li>Version history context</li><li>Site pages and wikis</li></ul></div>
+    <div class="ground-box"><h4>🔌 Plugins, CRM &amp; Apps</h4><ul><li>Salesforce, ServiceNow, Jira, Confluence</li><li>Dynamics 365 &amp; Power Apps (Wave 3)</li><li>1,400+ systems via MCP &amp; Graph</li><li>Third-party agents in Agent Store</li></ul></div>
+  </div>
+  <div class="sec-rail fade-in">
+    <div style="font-size:1.8rem;flex-shrink:0">🔒</div>
+    <div><h4>Permissions-Scoped Access</h4><p>Copilot only surfaces content the signed-in user already has permission to see. SharePoint permissions, Purview sensitivity labels, DLP policies, and Conditional Access are all respected. If a file is restricted, Copilot won't retrieve it — even for Cowork tasks. All Cowork actions are fully auditable via Microsoft Purview.</p></div>
+  </div>
+</section>
+
+<!-- 06. ORCHESTRATION -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 06. Orchestration</div>
+  <h2 class="sec-title">Semantic Kernel Orchestrator</h2>
+  <p class="sec-body fade-in">Copilot isn't a single LLM call. The Semantic Kernel orchestration layer decides which models, skills, plugins, and data sources to invoke. In Wave 3, it also coordinates Cowork tasks running across apps over extended periods.</p>
+  <div class="orch-box fade-in">
+    <div class="orch-center">🧠</div>
+    <div class="orch-label">SEMANTIC KERNEL · WAVE 3 ORCHESTRATOR</div>
+    <div class="orbit-row">
+      <div class="orbit-item"><span class="oi">📧</span>Outlook<br>Copilot</div>
+      <div class="orbit-item"><span class="oi">💬</span>Teams<br>Skill</div>
+      <div class="orbit-item"><span class="oi">📄</span>Word<br>Agent</div>
+      <div class="orbit-item"><span class="oi">📊</span>Excel<br>Agent</div>
+      <div class="orbit-item"><span class="oi">🎨</span>PPT<br>Agent</div>
+      <div class="orbit-item"><span class="oi">🔬</span>Researcher</div>
+      <div class="orbit-item"><span class="oi">📈</span>Analyst</div>
+      <div class="orbit-item"><span class="oi">⚙️</span>Workflows</div>
+      <div class="orbit-item"><span class="oi">🏗️</span>Cowork</div>
+      <div class="orbit-item"><span class="oi">🔍</span>Web<br>Search</div>
+      <div class="orbit-item"><span class="oi">🔌</span>MCP<br>Plugins</div>
+      <div class="orbit-item"><span class="oi">🤖</span>Custom<br>Agents</div>
+    </div>
+  </div>
+</section>
+
+<!-- 07. CAPABILITIES -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 07. Core Capabilities</div>
+  <h2 class="sec-title">What Copilot Can Do</h2>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="fc-icon">✍️</div><div class="fc-title">Draft &amp; Rewrite</div><div class="fc-body">Generate emails, documents, and presentations from a brief. Wave 3: edits directly in the native app canvas, grounded in Work IQ context so content always reflects current state.</div></div>
+    <div class="feat-card"><div class="fc-icon">📋</div><div class="fc-title">Summarise</div><div class="fc-body">Teams meeting recaps, email thread summaries, document overviews. Copilot Notebooks generate audio overviews — podcast-style briefings for catching up on the go.</div></div>
+    <div class="feat-card"><div class="fc-icon">🔍</div><div class="fc-title">Search &amp; Retrieve</div><div class="fc-body">Ask natural language questions across all M365 data. "What did we decide about Project X last week?" draws on emails, chats, docs, and meetings — permission-scoped.</div></div>
+    <div class="feat-card"><div class="fc-icon">📊</div><div class="fc-title">Analyse Data</div><div class="fc-body">Excel Agent builds models and charts. Analyst runs Python, detects patterns, generates visualisations. Code is transparent and verifiable in real time — from raw data to insight in minutes.</div></div>
+    <div class="feat-card"><div class="fc-icon">🎨</div><div class="fc-title">Create Presentations</div><div class="fc-body">Turn a Word doc or Copilot Page into a full PPT deck. Brand templates, speaker notes, and contextual explanations on any slide element — right-click → Explain.</div></div>
+    <div class="feat-card"><div class="fc-icon">🏗️</div><div class="fc-title">Long-Running Work (Cowork)</div><div class="fc-body">Wave 3: Delegate multi-step, multi-hour tasks. Cowork breaks goals into plans, executes across apps, pauses at checkpoints, and delivers auditable outputs powered by Anthropic's Claude.</div></div>
+  </div>
+</section>
+
+<!-- 08. MODEL CHOICE -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 08. Model Choice</div>
+  <h2 class="sec-title">The Model Timeline</h2>
+  <p class="sec-body fade-in">Microsoft's multi-model architecture means Copilot is never locked to one provider. Here's how the model roster evolved from GPT-5 through to the March 2026 frontier — including Anthropic's Claude.</p>
+
+  <div class="model-timeline">
+    <div class="mt-item"><div class="mt-dot">⚡</div><div class="mt-info"><div class="mt-date">AUG 2025</div><div class="mt-name">GPT-5 &amp; GPT-5 Reasoning</div><div class="mt-desc">GPT-5 launched in Copilot on day of release. A real-time router chose between a fast chat model and a deep reasoning model automatically based on prompt complexity. Also available in Copilot Studio for agent orchestration.</div><div class="mt-pills"><span class="mpill mp-blue">Copilot Chat</span><span class="mpill mp-purple">Studio Agents</span><span class="mpill mp-green">Auto-routing</span></div></div></div>
+
+    <div class="mt-item"><div class="mt-dot">🟣</div><div class="mt-info"><div class="mt-date">OCT–NOV 2025</div><div class="mt-name">GPT-5.1 + Claude Sonnet 4.5 (Beta)</div><div class="mt-desc">GPT-5.1 became default for declarative agents with auto model selection. Anthropic's Claude Sonnet 4.5 arrived in beta in Copilot Studio for Computer Use agents — enabling autonomous browser and GUI control.</div><div class="mt-pills"><span class="mpill mp-blue">Declarative Agents</span><span class="mpill mp-purple">Claude Sonnet 4.5</span><span class="mpill mp-yellow">Computer Use (Beta)</span></div></div></div>
+
+    <div class="mt-item"><div class="mt-dot">💡</div><div class="mt-info"><div class="mt-date">DEC 2025</div><div class="mt-name">GPT-5.2 Instant &amp; Thinking</div><div class="mt-desc">GPT-5.2 became the default model in Copilot Chat. Introduced dual-mode architecture: Instant for fast everyday tasks, Thinking for complex strategic analysis. Dramatically improved coding, math, multilingual capabilities, and extended context handling.</div><div class="mt-pills"><span class="mpill mp-blue">Quick Response</span><span class="mpill mp-purple">Think Deeper</span><span class="mpill mp-green">Default Model</span></div></div></div>
+
+    <div class="mt-item mt-latest"><div class="mt-dot">🚀</div><div class="mt-info"><div class="mt-date">MAR 3, 2026</div><div class="mt-name">GPT-5.3 Instant — "Quick Response"</div><div class="mt-desc">More accurate everyday responses with stronger, more expressive writing and fewer unnecessary disclaimers. Better web synthesis — Copilot now combines online sources with its own reasoning for directly usable outputs. Appears as "GPT-5.3 Quick response" in the model selector; "GPT-5.3 Chat" in Copilot Studio.</div><div class="mt-pills"><span class="mpill mp-blue">Quick Response</span><span class="mpill mp-green">GA · Mar 3, 2026</span><span class="mpill mp-yellow">Better Web Synthesis</span></div></div></div>
+
+    <div class="mt-item mt-latest"><div class="mt-dot">🧠</div><div class="mt-info"><div class="mt-date">MAR 7, 2026</div><div class="mt-name">GPT-5.4 Thinking — "Think Deeper"</div><div class="mt-desc">Strengthens Copilot's ability to reason, plan, and work through complex multi-step tasks with less back-and-forth. When paired with Work IQ, becomes noticeably more context-aware across your organisation. Handles technical prompts and longer workflows with higher-quality outputs. "GPT-5.4 Think deeper" in Copilot Chat; "GPT-5.4 Reasoning" in Copilot Studio.</div><div class="mt-pills"><span class="mpill mp-purple">Think Deeper</span><span class="mpill mp-blue">Studio Reasoning</span><span class="mpill mp-pink">Work IQ Integration</span></div></div></div>
+
+    <div class="mt-item mt-fire"><div class="mt-dot">🤝</div><div class="mt-info"><div class="mt-date">MAR 30, 2026</div><div class="mt-name">Claude + GPT "Critique" in Researcher</div><div class="mt-desc">A new capability where GPT drafts a response to a research query and Claude reviews it for accuracy, completeness, and citation quality before delivery. Multi-model advantage in action — two frontier AI systems collaborating on a single output. Copilot Cowork also uses Anthropic's Claude for multi-step reasoning via its agentic harness.</div><div class="mt-pills"><span class="mpill mp-pink">GPT Drafts · Claude Critiques</span><span class="mpill mp-purple">Researcher Agent</span><span class="mpill mp-blue">Cowork Reasoning</span></div></div></div>
+  </div>
+
+  <div class="model-sel fade-in" style="transition-delay:.15s">
+    <div class="msel-top">// Model selector — Copilot Chat (March 2026)</div>
+    <div class="msel-row">
+      <div class="msel-btn msel-active" onclick="selModel(this,'⚙️ Auto — Copilot routes your prompt to the best model automatically: GPT-5.3 for quick tasks, GPT-5.4 for complex reasoning')">⚙️ Auto</div>
+      <div class="msel-btn" onclick="selModel(this,'⚡ GPT-5.3 Quick response — Faster, more direct answers with stronger writing and better web synthesis. GA March 3, 2026')">⚡ GPT-5.3 Quick</div>
+      <div class="msel-btn" onclick="selModel(this,'🧠 GPT-5.4 Think deeper — Advanced reasoning for complex multi-step tasks. Context-aware via Work IQ. GA March 7, 2026')">🧠 GPT-5.4 Think Deeper</div>
+      <div class="msel-btn" onclick="selModel(this,'💡 GPT-5.2 Think deeper — Still available. Great for strategic planning and long document analysis')">💡 GPT-5.2 Think Deeper</div>
+      <div class="msel-btn" onclick="selModel(this,'🟣 Claude Sonnet 4.5 — Available in Copilot Studio for Computer Use agents that autonomously control browsers and GUI interfaces (Beta)')">🟣 Claude Sonnet 4.5</div>
+    </div>
+    <div class="msel-out" id="mselOut">⚙️ Auto — Copilot routes your prompt to the best model automatically: GPT-5.3 for quick tasks, GPT-5.4 for complex reasoning</div>
+  </div>
+</section>
+
+<!-- 09. WORK IQ -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 09. Work IQ</div>
+  <h2 class="sec-title">The Intelligence Layer</h2>
+  <p class="sec-body fade-in">Work IQ is the intelligence layer that gives Copilot and agents full knowledge of how you work, with whom you work, and the content you collaborate on. It's what separates Copilot from a generic model-plus-connector solution.</p>
+
+  <div class="workiq-layout fade-in">
+    <div class="wiq-explain">
+      <p>Work IQ amplifies your individual intelligence by tapping into your organisation's collective knowledge. It continuously synthesises signals across all M365 services, building a rich real-time context model that powers Copilot's responses, personalises outputs, and lets Cowork act with the same understanding you bring to your job.</p>
+      <p>Without Work IQ, an AI model only sees what you paste into a prompt. With Work IQ, Copilot knows the full history of a project — who said what in which meeting, what decisions were made in emails, which documents are most relevant, and what the current state of your work actually is.</p>
+      <div class="wiq-features">
+        <div class="wiq-feat"><h5>🗂️ Knowledge Graph</h5><p>Maps relationships between people, projects, documents, and decisions across your entire M365 estate in real time.</p></div>
+        <div class="wiq-feat"><h5>⏱️ Temporal Context</h5><p>Understands the sequence and recency of work — what's current, what's stale, and what's upcoming.</p></div>
+        <div class="wiq-feat"><h5>👥 People Signals</h5><p>Knows who you collaborate with most, who owns what, and who the key stakeholders are for any project.</p></div>
+        <div class="wiq-feat"><h5>🔄 Real-Time Updates</h5><p>Refreshes continuously — so Copilot and Cowork always reflect the current state of your files, meetings, and chats.</p></div>
+      </div>
+    </div>
+    <div class="wiq-signals">
+      <div class="wiq-slbl">Signal Sources — Work IQ Ingestion</div>
+      <div class="wiq-row"><div class="wiq-src">Outlook / Email</div><div class="wiq-bar-wrap"><div class="wiq-bar" style="width:88%;background:linear-gradient(90deg,#0078d4,#50e6ff)"></div></div><div class="wiq-pct">88%</div></div>
+      <div class="wiq-row"><div class="wiq-src">Teams / Chats</div><div class="wiq-bar-wrap"><div class="wiq-bar" style="width:82%;background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div></div><div class="wiq-pct">82%</div></div>
+      <div class="wiq-row"><div class="wiq-src">SharePoint / Docs</div><div class="wiq-bar-wrap"><div class="wiq-bar" style="width:76%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div><div class="wiq-pct">76%</div></div>
+      <div class="wiq-row"><div class="wiq-src">Calendar</div><div class="wiq-bar-wrap"><div class="wiq-bar" style="width:64%;background:linear-gradient(90deg,#22c55e,#4ade80)"></div></div><div class="wiq-pct">64%</div></div>
+      <div class="wiq-row"><div class="wiq-src">Dynamics 365</div><div class="wiq-bar-wrap"><div class="wiq-bar" style="width:48%;background:linear-gradient(90deg,#ec4899,#f472b6)"></div></div><div class="wiq-pct">48%</div></div>
+      <div class="wiq-row"><div class="wiq-src">Power Apps</div><div class="wiq-bar-wrap"><div class="wiq-bar" style="width:38%;background:linear-gradient(90deg,#06b6d4,#67e8f9)"></div></div><div class="wiq-pct">38%</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. AGENT 365 -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 10. Agent 365</div>
+  <h2 class="sec-title">The Agent Control Plane</h2>
+  <p class="sec-body fade-in">Agent 365 is the enterprise control plane for AI agents — the single place IT and security leaders use to observe, govern, secure, and manage every agent across the organisation. In just two months of preview, tens of millions of agents appeared in the registry.</p>
+
+  <div class="a365-layout fade-in">
+    <div class="a365-pillars">
+      <div class="a365-pillar p-observe"><h4>👁️ Observe</h4><p>Centralised visibility of all agents — Microsoft first-party, third-party, and custom — in a single inventory. Monitor agent activity, usage patterns, and agent-to-agent interactions via the Agent 365 registry.</p></div>
+      <div class="a365-pillar p-govern"><h4>⚖️ Govern</h4><p>Set policies for which agents can run, which data sources they can access, and what actions they can take autonomously. Approval workflows for sensitive agent actions before execution.</p></div>
+      <div class="a365-pillar p-secure"><h4>🛡️ Secure</h4><p>Powered by Defender, Purview, and Entra Agent ID. Agents get Entra identities, can be phishing targets, and are protected with the same security infrastructure as human users. "AI agents are as subject to phishing attacks as people are."</p></div>
+      <div class="a365-pillar p-manage"><h4>⚙️ Manage</h4><p>Full lifecycle management: deploy, update, disable, or retire agents at scale. Integrated with Intune, Defender, and Purview for compliance and audit support across all agent actions.</p></div>
+    </div>
+    <div class="a365-spec">
+      <h3>Agent 365 — Spec Sheet</h3>
+      <div class="a365-item"><div class="a365-em">📅</div><div class="a365-txt"><strong>General Availability</strong><span>May 1, 2026 · Announced at Wave 3 on March 9, 2026</span></div></div>
+      <div class="a365-item"><div class="a365-em">🪪</div><div class="a365-txt"><strong>Entra Agent ID</strong><span>Every managed agent gets a Microsoft Entra identity — the same IAM controls used for humans apply to AI agents</span></div></div>
+      <div class="a365-item"><div class="a365-em">🔒</div><div class="a365-txt"><strong>Defender + Purview Integration</strong><span>Real-time protection, audit logging, DLP enforcement, and sensitivity label compliance for all agent actions</span></div></div>
+      <div class="a365-item"><div class="a365-em">🔢</div><div class="a365-txt"><strong>Scale</strong><span>Tens of millions of agents registered in just two months of preview. IDC predicts 1.3B enterprise agents by 2028</span></div></div>
+      <div class="a365-item"><div class="a365-em">🌐</div><div class="a365-txt"><strong>Multi-Agent Orchestration</strong><span>Agents can orchestrate other agents. Agent 365 tracks the full chain of agent-to-agent interactions for auditability</span></div></div>
+      <div class="a365-price-box">
+        <p>💰 PRICING</p>
+        <span>Agent 365: <strong style="color:var(--accent)">$15 / user / month</strong> standalone · Or included in M365 E7 Frontier Suite at $99/user/month</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11. REASONING AGENTS -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 11. Reasoning Agents</div>
+  <h2 class="sec-title">Researcher &amp; Analyst</h2>
+  <p class="sec-body fade-in">Two purpose-built reasoning agents — GA for all M365 Copilot licence holders since June 2025. Researcher now orchestrates other agents, and both are deeply integrated with Work IQ. March 2026: Researcher adds GPT + Claude "Critique" for accuracy validation.</p>
+  <div class="agent-split fade-in">
+    <div class="agent-pane ap-researcher">
+      <div class="ap-hd"><div class="ap-icon">🔬</div><div><div class="ap-name">Researcher</div><div class="ap-sub">OpenAI Deep Research Model · GA Jun 2025</div></div></div>
+      <p class="ap-desc">Multi-step research at work. Combines OpenAI's deep research model with M365 Copilot's orchestration and Graph search. Integrates third-party data from Salesforce, ServiceNow, Confluence, Jira, and more. Can call other agents for specialised sub-tasks. March 2026: GPT drafts, Claude critiques research outputs.</p>
+      <ul class="ap-list">
+        <li>Comprehensive competitive analyses and board-level briefs</li>
+        <li>Vendor negotiation prep with internal + web data</li>
+        <li>Multi-agent orchestration — Researcher calls other agents</li>
+        <li>Custom source controls (toggle work, web, third-party)</li>
+        <li>New: GPT + Claude "Critique" for accuracy validation</li>
+      </ul>
+      <div class="ap-prompt">"Build a go-to-market strategy grounded in our internal work data and competitive web intelligence"</div>
+    </div>
+    <div class="agent-pane ap-analyst">
+      <div class="ap-hd"><div class="ap-icon">📊</div><div><div class="ap-name">Analyst</div><div class="ap-sub">OpenAI o3-mini · GA Jun 2025</div></div></div>
+      <p class="ap-desc">Thinks like a skilled data scientist. Uses chain-of-thought reasoning to progress iteratively through analytical problems. Runs Python in real time — code is visible, verifiable, and auditable. Outputs feed directly into Researcher for integrated qualitative + quantitative insights.</p>
+      <ul class="ap-list">
+        <li>Raw data → insights and visualisations in minutes</li>
+        <li>Pattern detection, outliers, and statistical analysis</li>
+        <li>Python execution with transparent, viewable code</li>
+        <li>Complex multi-step queries and forecasting models</li>
+        <li>Seamlessly feeds insights into Researcher</li>
+      </ul>
+      <div class="ap-prompt">"Find the top 3 revenue trends in this dataset and explain the regional outliers with charts"</div>
+    </div>
+  </div>
+</section>
+
+<!-- 12. NOTEBOOKS -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 12. Copilot Notebooks</div>
+  <h2 class="sec-title">Living Project Workspaces</h2>
+  <p class="sec-body fade-in">Notebooks are persistent, AI-powered workspaces. Instead of context scattering across emails, chats, and documents, Notebooks aggregate all project content — with AI reasoning applied continuously. Available on desktop, web, and the Copilot mobile app.</p>
+  <div class="nb-demo fade-in">
+    <div class="nb-side">
+      <div class="nb-slbl">SOURCES</div>
+      <div class="nb-it nb-active">📄 Project Brief v3.docx</div>
+      <div class="nb-it">📧 Stakeholder emails (14)</div>
+      <div class="nb-it">💬 Teams thread — Architecture</div>
+      <div class="nb-it">🔗 Competitor website link</div>
+      <div class="nb-it">🎙️ Kickoff meeting recording</div>
+      <div class="nb-it nb-add">+ Add source…</div>
+      <div class="nb-slbl" style="margin-top:1rem">PAGES</div>
+      <div class="nb-it nb-active">📓 AI Summary</div>
+      <div class="nb-it">🎧 Audio Overview</div>
+      <div class="nb-it">📑 Copilot Page export</div>
+    </div>
+    <div class="nb-main">
+      <div class="nb-title">Azure Migration — Project Notebook</div>
+      <div>
+        <div class="nb-chip">🧠 AI Summary</div>
+        <p style="font-size:.86rem;color:var(--muted);line-height:1.75;margin-top:.75rem">Based on all 5 sources, the project is in Phase 2 (Identity migration). Key risk: 3 legacy apps not yet remediated. Stakeholder sentiment is <span style="color:var(--green)">positive</span> with concern around the March 28 cutover. Notebook will update this summary as new content is added.</p>
+        <div style="height:1px;background:var(--border);margin:1rem 0"></div>
+        <div class="nb-chip">🎧 Audio Overview</div>
+        <p style="font-size:.86rem;color:var(--muted);line-height:1.75;margin-top:.75rem">Generates a <strong>podcast-style audio briefing</strong> — two AI hosts walking through key points. Customisable narration style and length. Available in OneDrive, Outlook, Teams, Word, and the Copilot mobile app.</p>
+      </div>
+      <div class="nb-feats">
+        <div class="nbf">📱 Mobile (iOS + Android)</div>
+        <div class="nbf">🎧 Audio overviews</div>
+        <div class="nbf">📄 Docs + emails + chats</div>
+        <div class="nbf">🔗 Web links as sources</div>
+        <div class="nbf">🔄 Persistent context</div>
+        <div class="nbf">📑 Copilot Pages export</div>
+        <div class="nbf">🎙️ Meeting recordings</div>
+        <div class="nbf">🔬 Researcher integration</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13. OFFICE AGENTS -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 13. Office App Agents</div>
+  <h2 class="sec-title">Word, Excel, PowerPoint &amp; Outlook</h2>
+  <p class="sec-body fade-in">Wave 3 embeds Copilot natively in Word, Excel, PowerPoint, and Outlook — turning document creation from a blank-page task into an iterative, conversational collaboration, grounded in Work IQ context at all times.</p>
+  <div class="office-grid fade-in">
+    <div class="oc-card"><div class="oc-app" style="background:linear-gradient(135deg,#185abd,#2b7cd3)">W</div><div><div class="oc-name">Word Agent</div><div class="oc-status">Wave 3 GA · Mar 2026</div><p class="oc-desc">Agent Mode turns document creation into an interactive dialogue inside the canvas. Copilot drafts, suggests refinements, asks clarifying questions, and applies native Word styles — grounded in Work IQ.</p><ul class="oc-list"><li>Conversational creation from a brief</li><li>In-context Q&amp;A and iterative refinement</li><li>Grounded on SharePoint, emails, meetings</li><li>Native styles, no formatting needed</li></ul></div></div>
+    <div class="oc-card"><div class="oc-app" style="background:linear-gradient(135deg,#107c10,#54b354)">X</div><div><div class="oc-name">Excel Agent</div><div class="oc-status">Wave 3 GA · Mar 2026</div><p class="oc-desc">Plans, executes, and validates multi-step tasks directly in the grid. Inserts real Excel formulas and structures. Every change is transparent, auditable, and reversible. "It speaks Excel."</p><ul class="oc-list"><li>Multi-step planning and execution in grid</li><li>Real Excel formulas and native structures</li><li>Validates its own outputs before presenting</li><li>Natural language to formula — no syntax needed</li></ul></div></div>
+    <div class="oc-card"><div class="oc-app" style="background:linear-gradient(135deg,#c43e1c,#e97548)">P</div><div><div class="oc-name">PowerPoint Agent</div><div class="oc-status">Wave 3 GA · Mar 2026</div><p class="oc-desc">Full decks from a Copilot Page, Word doc, or brief. Brand templates, speaker notes, and contextual explanations on any element. Right-click any object → "Explain" for full context.</p><ul class="oc-list"><li>Deck creation from Word docs or Copilot Pages</li><li>Brand template application</li><li>Right-click "Explain" on any slide object</li><li>Speaker notes grounded in Work IQ</li></ul></div></div>
+    <div class="oc-card"><div class="oc-app" style="background:linear-gradient(135deg,#0078d4,#50e6ff)">O</div><div><div class="oc-name">Outlook Copilot</div><div class="oc-status">Wave 3 GA · Mar 2026</div><p class="oc-desc">Draft and refine emails, manage calendars and RSVPs. Copilot finds available meeting times, sends invites, and keeps calendars up to date — all via natural language in the chat sidebar.</p><ul class="oc-list"><li>Email draft and rewrite in context</li><li>Natural language meeting scheduling</li><li>Calendar management and RSVP handling</li><li>Conflict detection and time suggestions</li></ul></div></div>
+  </div>
+</section>
+
+<!-- 14. COWORK -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 14. Copilot Cowork</div>
+  <h2 class="sec-title">Beyond Prompts: Long-Running Work</h2>
+  <p class="sec-body fade-in">Cowork is the headline feature of Wave 3. It transforms Copilot from a chat assistant into an autonomous agent that executes multi-step, multi-hour tasks across your entire M365 environment — with transparent checkpoints, enterprise governance, and Anthropic's Claude powering its reasoning.</p>
+
+  <div class="cowork-layout fade-in">
+    <div class="cw-flow">
+      <h3>How Cowork Executes</h3>
+      <div class="cw-step"><div class="cw-step-num">1</div><div class="cw-step-txt"><strong>Describe an Outcome</strong><p>State a goal, not a single task. E.g., "Prepare the Q1 board presentation using SharePoint reports, Teams transcripts, and the Excel financial model."</p></div></div>
+      <div class="cw-step"><div class="cw-step-num">2</div><div class="cw-step-txt"><strong>Cowork Creates a Plan</strong><p>Breaks the goal into discrete steps, identifies M365 resources to access, and presents the plan for your review before starting execution.</p></div></div>
+      <div class="cw-step"><div class="cw-step-num">3</div><div class="cw-step-txt"><strong>Background Execution</strong><p>Cowork works across Outlook, Teams, SharePoint, Word, Excel, and PowerPoint simultaneously — reading emails, analysing transcripts, pulling data, generating deliverables.</p></div></div>
+      <div class="cw-step"><div class="cw-step-num">4</div><div class="cw-step-txt"><strong>Checkpoints Keep You in Control</strong><p>At predefined intervals, Cowork pauses, shows progress, requests confirmation on sensitive actions, and allows you to redirect or halt work at any time.</p></div></div>
+      <div class="cw-step"><div class="cw-step-num">5</div><div class="cw-step-txt"><strong>Auditable Delivery</strong><p>All Cowork actions are logged in Microsoft Purview. Outputs are native M365 artifacts — version-controlled and governed by your existing DLP, sensitivity label, and compliance policies.</p></div></div>
+    </div>
+    <div class="cw-diff">
+      <div class="cw-diff-card cw-highlight"><h4>🏗️ Copilot Cowork (Microsoft)</h4><p>Runs in the cloud within your M365 tenant. Covered by Enterprise Data Protection. Powered by Work IQ for full org context. Uses Anthropic's Claude model for multi-step reasoning and the same agentic harness as Claude Cowork — but enterprise-grade, cloud-based, fully auditable. Available in Frontier from March 30, 2026.</p></div>
+      <div class="cw-diff-card"><h4>🖥️ Claude Cowork (Anthropic)</h4><p>Runs locally on a user's device. Anthropic's standalone agentic product. Microsoft's Cowork is built on the same agentic platform but runs in the cloud with M365 governance and Work IQ integration. "We actually don't work locally, and that's a feature, not a bug." — Jared Spataro, Microsoft</p></div>
+      <div class="cw-diff-card"><h4>⚠️ Governance Before Enabling</h4><p>Cowork accesses data across multiple M365 services in a single workflow. Ensure permissions models are airtight, configure Purview audit logging for Cowork events, and define which actions require human approval before enabling in production.</p></div>
+    </div>
+  </div>
+
+  <div class="cowork-rail fade-in">
+    <div style="font-size:1.8rem;flex-shrink:0">🤝</div>
+    <div>
+      <h4>Built with Anthropic</h4>
+      <p>Copilot Cowork is built in close collaboration with Anthropic, bringing the technology platform that powers Claude Cowork into Microsoft 365 Copilot. It uses Claude as the AI powering multi-step reasoning — but runs enterprise-grade in your M365 tenant with Work IQ and Enterprise Data Protection. The broader Copilot multi-model strategy also includes Claude Sonnet 4.5 for Computer Use agents and the new GPT + Claude Critique capability in Researcher. "We have the ability to reach across the industry and look at innovations coming from OpenAI, from Anthropic, and bring them into this system." — Jared Spataro, Microsoft CMO AI@Work</p>
+    </div>
+  </div>
+</section>
+
+<!-- 15. AGENT ROSTER -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 15. Agent Roster</div>
+  <h2 class="sec-title">The Full Agent Store</h2>
+  <p class="sec-body fade-in">Microsoft's Agent Store has grown into a full ecosystem. First-party, third-party, and custom agents are all discoverable, pinnable, and governed via Agent 365 — with new agents added continuously through the Frontier programme.</p>
+  <div class="roster-grid fade-in">
+    <div class="rc"><div class="rc-top"><span class="rc-icon">🔬</span><div><div class="rc-name">Researcher</div><div class="rc-av av-ga">GA · Jun 2025</div></div></div><p class="rc-desc">Deep research across work + web. Board briefs, competitive analyses, client prep. Orchestrates other agents. New: GPT drafts, Claude critiques (Mar 2026).</p></div>
+    <div class="rc"><div class="rc-top"><span class="rc-icon">📊</span><div><div class="rc-name">Analyst</div><div class="rc-av av-ga">GA · Jun 2025</div></div></div><p class="rc-desc">Runs Python, detects patterns, generates charts. Built on o3-mini. Raw spreadsheet → executive insight in minutes. Code is transparent and verifiable.</p></div>
+    <div class="rc"><div class="rc-top"><span class="rc-icon">🏗️</span><div><div class="rc-name">Copilot Cowork</div><div class="rc-av av-new">Frontier · Mar 2026</div></div></div><p class="rc-desc">Long-running, multi-step task execution. Breaks goals into plans, runs across M365, checks in at configurable checkpoints. Powered by Claude + Work IQ.</p></div>
+    <div class="rc"><div class="rc-top"><span class="rc-icon">💼</span><div><div class="rc-name">Sales Development Agent</div><div class="rc-av av-fr">Frontier · Dec 2025</div></div></div><p class="rc-desc">Autonomously builds pipeline, nurtures leads, personalises outreach. Connects to Salesforce and Dynamics 365. Sellers focus on closing; agent handles prospecting.</p></div>
+    <div class="rc"><div class="rc-top"><span class="rc-icon">⚙️</span><div><div class="rc-name">Workflows Agent</div><div class="rc-av av-fr">Frontier · Oct 2025</div></div></div><p class="rc-desc">Automates repetitive tasks across M365 apps using simple prompts — meeting summaries, task digests, scheduled triggers. Enterprise-grade security built in.</p></div>
+    <div class="rc"><div class="rc-top"><span class="rc-icon">🧑‍💻</span><div><div class="rc-name">Skills Agent</div><div class="rc-av av-ga">GA · 2025</div></div></div><p class="rc-desc">Powered by People Skills data layer. Builds dynamic skill-based teams and helps employees discover colleagues with specific expertise across the organisation.</p></div>
+    <div class="rc"><div class="rc-top"><span class="rc-icon">📋</span><div><div class="rc-name">Surveys Agent</div><div class="rc-av av-ga">GA · Oct 2025</div></div></div><p class="rc-desc">Personal survey expert. Gathers training feedback, measures employee sentiment, runs customer research. Describe what you want to learn — no survey builder expertise needed.</p></div>
+    <div class="rc"><div class="rc-top"><span class="rc-icon">🤖</span><div><div class="rc-name">Custom Agents (Studio)</div><div class="rc-av av-ga">GA</div></div></div><p class="rc-desc">Build agents connected to 1,400+ systems via MCP, Power Platform, and Graph. Multi-agent orchestration. Computer Use via Claude Sonnet 4.5. Governed by Agent 365.</p></div>
+  </div>
+</section>
+
+<!-- 16. E7 LICENSING -->
+<section>
+  <div class="divider"></div><br><br>
+  <div class="sec-tag">// 16. M365 E7 — Frontier Suite</div>
+  <h2 class="sec-title">Intelligence + Trust, Unified</h2>
+  <p class="sec-body fade-in">Announced March 9, 2026, Microsoft 365 E7 bundles E5 + Copilot + Agent 365 + the full security stack into a single Frontier Suite — at a price below buying them individually. More than 90% of the Fortune 500 now use Microsoft 365 Copilot.</p>
+  <div class="e7-box fade-in">
+    <div class="e7-head">
+      <div class="e7-badge">E7</div>
+      <div class="e7-hd"><h3>Microsoft 365 E7 — The Frontier Suite</h3><p>Announced March 9, 2026 · E5 + Copilot + Agent 365 + Entra + Defender + Intune + Purview in one solution</p></div>
+    </div>
+    <div class="e7-grid">
+      <div class="e7-item"><div class="ei-icon">💼</div><div class="ei-name">M365 E5</div><div class="ei-desc">Full E5 productivity, compliance, and voice — the complete Microsoft 365 enterprise baseline.</div></div>
+      <div class="e7-item"><div class="ei-icon">✨</div><div class="ei-name">M365 Copilot</div><div class="ei-desc">Full Copilot licence including Wave 3 agents, Cowork, Researcher, Analyst, Notebooks, and Work IQ.</div></div>
+      <div class="e7-item"><div class="ei-icon">🤖</div><div class="ei-name">Agent 365</div><div class="ei-desc">Enterprise agent control plane — observe, govern, secure, and manage all agents across the org.</div></div>
+      <div class="e7-item"><div class="ei-icon">🪪</div><div class="ei-name">Entra Suite</div><div class="ei-desc">Full identity and access management including Entra Agent ID for AI agent identities.</div></div>
+      <div class="e7-item"><div class="ei-icon">🛡️</div><div class="ei-name">Defender</div><div class="ei-desc">Advanced threat protection including for agent identities and autonomous agentic actions.</div></div>
+      <div class="e7-item"><div class="ei-icon">📱</div><div class="ei-name">Intune</div><div class="ei-desc">Device and endpoint management, extended to agent-operated and Cowork environments.</div></div>
+      <div class="e7-item"><div class="ei-icon">⚖️</div><div class="ei-name">Purview</div><div class="ei-desc">Compliance, audit logging, and data governance — including for Cowork actions and agent outputs.</div></div>
+    </div>
+    <div class="e7-price">
+      <div class="e7-price-lbl">PER USER / MONTH · Below à la carte cost</div>
+      <div class="e7-price-val">$99 / user</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Data sourced from <span>Microsoft 365 Blog</span>, <span>Microsoft Learn</span>, <span>Ignite 2025</span>, and <span>Wave 3 March 2026</span> announcements &nbsp;·&nbsp; Updated <span>March 2026</span> &nbsp;·&nbsp; <span>ccunpacked.dev</span> inspired layout</p>
+</footer>
+
+<script>
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX+'px'; cur.style.top = e.clientY+'px';
+  ring.style.left = e.clientX+'px'; ring.style.top = e.clientY+'px';
+});
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add('visible');
+    if (e.target.id === 'ctxViz') {
+      setTimeout(() => document.querySelectorAll('.ctx-fill').forEach(b => b.style.width = b.dataset.width+'%'), 250);
+    }
+  });
+}, {threshold:.1});
+
+document.querySelectorAll('.fade-in,.arch-step,.feat-card,.ground-box,.mt-item').forEach((el,i) => {
+  const cls = el.classList;
+  if (cls.contains('arch-step')||cls.contains('mt-item')) el.style.transitionDelay=(i%8*.08)+'s';
+  if (cls.contains('feat-card')) el.style.transitionDelay=(i%6*.07)+'s';
+  if (cls.contains('ground-box')) el.style.transitionDelay=(i%4*.1)+'s';
+  io.observe(el);
+});
+io.observe(document.getElementById('ctxViz'));
+
+function selModel(el, msg) {
+  document.querySelectorAll('.msel-btn').forEach(b => b.classList.remove('msel-active'));
+  el.classList.add('msel-active');
+  const out = document.getElementById('mselOut');
+  out.style.opacity=0;
+  setTimeout(()=>{ out.textContent=msg; out.style.opacity=1; },150);
+  out.style.transition='opacity .15s';
+}
+
+const scenarios = [
+  {
+    prompt: "Summarise my unread emails from this week and highlight any action items.",
+    stages: ["✏️ Prompt received in Outlook Copilot pane","🛡️ Safety check… PII scan… entitlement verified ✓","💡 Work IQ: querying mailbox, last 7 days of unread messages…","📐 14 emails retrieved → grounded context assembled…","🧠 GPT-5.3 Quick Response: generating summary…","✅ Output filtered, citations attached, rendered in Outlook"],
+    response: "Email summary — this week:\n\n🔴 Action Items (3)\n• Reply to Sarah Chen re: Q3 budget approval by Friday\n• Sign off on vendor contract (from Legal)\n• Schedule follow-up with Azure migration team\n\n📌 FYI — No Action Needed\n• 5 meeting confirmations, 2 newsletters, 4 internal updates\n\n[Sources: 14 emails · Outlook · Work IQ]"
+  },
+  {
+    prompt: "Analyse the revenue data in this spreadsheet and tell me which region is underperforming.",
+    stages: ["✏️ Prompt received in Excel Agent (Wave 3 native canvas)","🛡️ Safety check passed — no PII detected","💡 Work IQ: scanning active workbook — 3 sheets, 2,400 rows…","📐 Table schema + sample rows injected into context…","🧠 GPT-5.4 Think Deeper: reasoning across regions and quarters…","✅ Analysis generated with chart recommendation"],
+    response: "Regional Performance Analysis\n\n📉 EMEA underperforming by 23% vs. plan (Q1–Q3)\n• EMEA actual: £4.2M vs £5.5M target\n• UK & Germany down 18% YoY\n\n📈 APAC outperforming at +11% above target\n\nCopilot recommends: Build a pivot comparing EMEA sub-regions — shall I do that now?\n\n[Source: Sheet1 'Revenue_by_Region' · Excel Agent · Wave 3]"
+  },
+  {
+    prompt: "Research the competitive landscape for our new product — summarise internal strategy and external competitors.",
+    stages: ["✏️ Prompt received in Researcher agent","🛡️ Safety check… Researcher entitlement verified ✓","💡 Work IQ: scanning emails, Teams, SharePoint for strategy docs…","📐 8 internal files + 12 web sources assembled into context…","🧠 OpenAI deep research → Claude Critique: draft + validate…","✅ Research report generated with citations and critique pass"],
+    response: "Competitive Landscape Report\n\n🏢 Internal Strategy (8 sources)\n• Positioning: premium segment, enterprise-first\n• Q3 launch target, EMEA go-to-market\n• Key differentiator: Work IQ integration depth\n\n🌐 External (12 web sources · Claude validated)\n• Competitor A: strong SMB, weak enterprise governance\n• Competitor B: advanced features, poor M365 integration\n• Whitespace: enterprise compliance + AI grounding\n\n[GPT drafted · Claude Critique validated · Researcher Agent]"
+  },
+  {
+    prompt: "Prepare the Q1 board presentation using SharePoint reports, Teams transcripts, and the Excel financial model.",
+    stages: ["✏️ Cowork task received — multi-step goal detected by orchestrator","🛡️ Safety check + Cowork execution plan presented for review…","💡 Work IQ: scanning SharePoint (5 docs), Teams (14 meetings), Excel…","📐 Cowork plan: 6 steps · Est. 18 minutes · Checkpoint at step 4","🧠 Claude (Cowork reasoning): executing step 3 of 6 — drafting slides…","⏸️ CHECKPOINT reached — draft ready, awaiting your review"],
+    response: "Cowork Task — Q1 Board Presentation\n\n✅ Step 1: SharePoint Q1 reports read (5 docs)\n✅ Step 2: Teams transcripts analysed (14 meetings)\n✅ Step 3: Excel financial model processed\n⏸️ CHECKPOINT — Review before continuing\n\n📄 Draft: Q1_Board_Review.pptx (18 slides)\n• Slide 5: chart from Excel model\n• Action items from Feb Board included\n• 3 steps remaining (format + speaker notes + review)\n\n[Cowork · Claude reasoning · Work IQ · Purview audit logged]"
+  }
+];
+
+let cur_sc=0, running=false;
+
+function setScenario(idx) {
+  cur_sc=idx;
+  document.querySelectorAll('.chip').forEach((c,i)=>c.classList.toggle('active',i===idx));
+  document.getElementById('userBubble').textContent=scenarios[idx].prompt;
+  document.getElementById('responseBubble').textContent='Click "Run Pipeline" to simulate Copilot\'s response…';
+  document.querySelectorAll('.pipe-s').forEach(p=>p.classList.remove('pipe-active'));
+}
+document.querySelectorAll('.chip').forEach((c,i)=>c.addEventListener('click',()=>{ if(!running) setScenario(i); }));
+
+document.getElementById('runBtn').addEventListener('click', async()=>{
+  if(running) return;
+  running=true;
+  const btn=document.getElementById('runBtn');
+  btn.textContent='⏳ PROCESSING…'; btn.disabled=true;
+  const sc=scenarios[cur_sc];
+  const resp=document.getElementById('responseBubble');
+  resp.textContent=''; resp.classList.add('typing');
+  for(let i=0;i<6;i++){
+    document.querySelectorAll('.pipe-s').forEach((p,j)=>p.classList.toggle('pipe-active',j===i));
+    resp.textContent=sc.stages[i];
+    await sleep(720);
+  }
+  document.querySelectorAll('.pipe-s').forEach(p=>p.classList.remove('pipe-active'));
+  resp.classList.remove('typing'); resp.textContent='';
+  for(let c=0;c<sc.response.length;c++){
+    resp.textContent+=sc.response[c];
+    if(c%6===0) await sleep(10);
+  }
+  btn.textContent='▶ RUN PIPELINE'; btn.disabled=false; running=false;
+});
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+</script>
+</body>
+</html>
