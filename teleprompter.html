@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo Script Teleprompter</title>
+<style>
+  /* ── Reset & Base ───────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-glow: rgba(88,166,255,.25);
+    --danger: #f85149;
+    --success: #3fb950;
+    --prompt-bg: #000000;
+    --prompt-text: #ffffff;
+    --highlight: rgba(88,166,255,.12);
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ─────────────────────────────────────────── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    min-height: 52px;
+    flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo svg { width: 22px; height: 22px; fill: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  /* ── Buttons ────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); background: var(--highlight); }
+  .btn.active, .btn.primary {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+  }
+  .btn.primary:hover { filter: brightness(1.15); }
+  .btn.danger { border-color: var(--danger); color: var(--danger); }
+  .btn.danger:hover { background: rgba(248,81,73,.12); }
+  .btn svg { width: 16px; height: 16px; fill: currentColor; }
+  .btn-icon {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-icon:hover { border-color: var(--accent); background: var(--highlight); }
+  .btn-icon.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  .btn-icon svg { width: 18px; height: 18px; fill: currentColor; }
+
+  /* ── Layout ─────────────────────────────────────────── */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Sidebar ────────────────────────────────────────── */
+  .sidebar {
+    width: 340px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: margin-left .3s;
+    z-index: 50;
+  }
+  .sidebar.collapsed { margin-left: -340px; }
+  .sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sidebar-header h3 { font-size: 14px; font-weight: 600; }
+
+  .script-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .script-item {
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background .15s;
+    margin-bottom: 2px;
+  }
+  .script-item:hover { background: var(--highlight); }
+  .script-item.active { background: var(--accent); color: #000; }
+  .script-item.active .script-meta { color: rgba(0,0,0,.6); }
+  .script-item-info { flex: 1; min-width: 0; }
+  .script-item-title {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .script-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .script-item-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+  .script-item:hover .script-item-actions { opacity: 1; }
+  .script-item.active .script-item-actions { opacity: 1; }
+  .script-item-actions button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+  }
+  .script-item-actions button:hover { background: rgba(255,255,255,.15); }
+  .script-item-actions button svg { width: 14px; height: 14px; fill: currentColor; }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Editor Panel ───────────────────────────────────── */
+  .editor-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .editor-panel.hidden { display: none; }
+
+  .editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .editor-toolbar label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .title-input {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .title-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--bg);
+  }
+
+  .editor-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .script-textarea {
+    flex: 1;
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    padding: 20px 24px;
+    font-size: 16px;
+    line-height: 1.7;
+    resize: none;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  .script-textarea:focus { outline: none; }
+  .script-textarea::placeholder { color: var(--muted); }
+
+  .word-count {
+    padding: 6px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  /* ── Prompter Panel ─────────────────────────────────── */
+  .prompter-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .prompter-panel.hidden { display: none; }
+
+  .prompter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .control-group label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .control-sep {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  .range-value {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    min-width: 32px;
+    text-align: center;
+  }
+
+  /* ── Prompter Display ───────────────────────────────── */
+  .prompter-viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: var(--prompt-bg);
+  }
+
+  .prompter-guide {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent);
+    z-index: 5;
+    box-shadow: 0 0 20px var(--accent-glow), 0 0 60px var(--accent-glow);
+    pointer-events: none;
+    top: 30%;
+  }
+
+  .prompter-fade-top, .prompter-fade-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 25%;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .prompter-fade-top {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,.7), transparent);
+  }
+  .prompter-fade-bottom {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.7), transparent);
+  }
+
+  .prompter-scroll-area {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .prompter-content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    padding: 0 8%;
+    color: var(--prompt-text);
+    line-height: 1.65;
+    transition: none;
+    will-change: transform;
+  }
+  .prompter-content.mirrored {
+    transform: scaleX(-1);
+  }
+
+  .prompter-content .segment {
+    display: block;
+    padding: 4px 0;
+    transition: opacity .3s;
+  }
+
+  .prompter-content .section-break {
+    display: block;
+    height: 2em;
+    border-bottom: 1px dashed rgba(255,255,255,.15);
+    margin: 0.5em 0;
+  }
+
+  /* ── Countdown Overlay ──────────────────────────────── */
+  .countdown-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  .countdown-overlay.visible { opacity: 1; pointer-events: auto; }
+  .countdown-number {
+    font-size: 120px;
+    font-weight: 700;
+    color: var(--accent);
+    animation: countPulse .4s ease-out;
+  }
+  @keyframes countPulse {
+    0% { transform: scale(1.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ── Progress Bar ───────────────────────────────────── */
+  .progress-bar-track {
+    height: 3px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width .3s linear;
+  }
+
+  /* ── Prompter Status Bar ────────────────────────────── */
+  .prompter-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 20px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .status-left, .status-right { display: flex; gap: 16px; align-items: center; }
+  .status-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .status-badge.ready { background: rgba(88,166,255,.15); color: var(--accent); }
+  .status-badge.playing { background: rgba(63,185,80,.15); color: var(--success); }
+  .status-badge.paused { background: rgba(248,81,73,.15); color: var(--danger); }
+
+  /* ── Keyboard Shortcuts Modal ───────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 460px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 16px; }
+  .shortcut-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .shortcut-row:last-child { border-bottom: none; }
+  .shortcut-keys { display: flex; gap: 4px; }
+  kbd {
+    display: inline-block;
+    padding: 3px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Segoe UI', monospace;
+    color: var(--accent);
+    min-width: 28px;
+    text-align: center;
+  }
+
+  /* ── Fullscreen ─────────────────────────────────────── */
+  body.fullscreen .header,
+  body.fullscreen .sidebar,
+  body.fullscreen .prompter-controls,
+  body.fullscreen .prompter-status,
+  body.fullscreen .progress-bar-track { display: none; }
+  body.fullscreen .prompter-viewport {
+    border-radius: 0;
+  }
+  body.fullscreen .prompter-panel { border: none; }
+
+  /* ── Scrollbar ──────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* ── Responsive ─────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .sidebar { position: fixed; left: 0; top: 52px; bottom: 0; z-index: 100; }
+    .sidebar.collapsed { margin-left: -340px; }
+    .editor-toolbar { padding: 8px 12px; }
+    .prompter-controls { padding: 8px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-left">
+    <button class="btn-icon" id="toggleSidebar" title="Toggle script library">
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 7h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/></svg>
+      Demo Teleprompter
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn" id="btnEdit" title="Edit script">
+      <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      Edit
+    </button>
+    <button class="btn primary" id="btnPrompt" title="Open teleprompter">
+      <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM5 15h14v2H5zm0-4h14v2H5zm0-4h14v2H5z"/></svg>
+      Prompter
+    </button>
+    <button class="btn-icon" id="btnShortcuts" title="Keyboard shortcuts">
+      <svg viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 12H4V7h16v10zM11 8h2v2h-2zm0 3h2v2h-2zM8 8h2v2H8zm0 3h2v2H8zM5 11h2v2H5zm0-3h2v2H5zm3 6h6v2H8zm6-3h2v2h-2zm0-3h2v2h-2zm3 3h2v2h-2zm0-3h2v2h-2z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ── SIDEBAR ───────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Script Library</h3>
+      <button class="btn" id="btnNewScript" style="padding:4px 10px; font-size:12px;">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        New
+      </button>
+    </div>
+    <div class="script-list" id="scriptList"></div>
+    <div class="sidebar-footer">
+      <div style="display:flex;gap:6px">
+        <button class="btn" id="btnImport" style="flex:1;justify-content:center;font-size:12px;">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+          Import .txt
+        </button>
+        <button class="btn" id="btnExport" style="flex:1;justify-content:center;font-size:12px;">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Export
+        </button>
+      </div>
+      <input type="file" id="fileImport" accept=".txt" hidden>
+    </div>
+  </aside>
+
+  <!-- ── EDITOR ────────────────────────────────────────── -->
+  <div class="editor-panel" id="editorPanel">
+    <div class="editor-toolbar">
+      <input class="title-input" id="scriptTitle" placeholder="Script title..." value="Untitled Script">
+      <button class="btn primary" id="btnStartPrompter" style="margin-left:auto;">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        Start Prompter
+      </button>
+    </div>
+    <div class="editor-body">
+      <textarea class="script-textarea" id="scriptTextarea"
+        placeholder="Paste or type your demo script here...
+
+Tips:
+  - Use blank lines to separate sections
+  - Start a line with ## to create a section heading
+  - Lines starting with // are notes (hidden in prompter)
+  - Press Ctrl+Enter to jump straight to the prompter"></textarea>
+    </div>
+    <div class="word-count" id="wordCount">0 words &middot; ~0 min read</div>
+  </div>
+
+  <!-- ── PROMPTER ──────────────────────────────────────── -->
+  <div class="prompter-panel hidden" id="prompterPanel">
+    <div class="prompter-controls">
+      <button class="btn primary" id="btnPlay" title="Play / Pause (Space)">
+        <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        <span id="playLabel">Play</span>
+      </button>
+      <button class="btn" id="btnReset" title="Reset (R)">
+        <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+        Reset
+      </button>
+
+      <div class="control-sep"></div>
+
+      <div class="control-group">
+        <label>Speed</label>
+        <input type="range" id="speedSlider" min="1" max="20" value="5" style="width:100px">
+        <span class="range-value" id="speedValue">5</span>
+      </div>
+
+      <div class="control-sep"></div>
+
+      <div class="control-group">
+        <label>Font</label>
+        <input type="range" id="fontSlider" min="24" max="80" value="42" style="width:80px">
+        <span class="range-value" id="fontValue">42</span>
+      </div>
+
+      <div class="control-sep"></div>
+
+      <div class="control-group">
+        <button class="btn-icon" id="btnMirror" title="Mirror mode (M)">
+          <svg viewBox="0 0 24 24"><path d="M9 3L5 6.99h3V14h2V6.99h3L9 3zm7 14.01V10h-2v7.01h-3L15 21l4-3.99h-3z"/></svg>
+        </button>
+        <button class="btn-icon" id="btnFullscreen" title="Fullscreen (F)">
+          <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        </button>
+        <button class="btn-icon" id="btnFlipColor" title="Toggle color scheme (C)">
+          <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 000 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-1 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        </button>
+      </div>
+
+      <div style="margin-left:auto;">
+        <button class="btn" id="btnBackToEdit">
+          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          Edit Script
+        </button>
+      </div>
+    </div>
+
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+    <div class="prompter-viewport" id="prompterViewport">
+      <div class="prompter-fade-top"></div>
+      <div class="prompter-fade-bottom"></div>
+      <div class="prompter-guide" id="prompterGuide"></div>
+      <div class="prompter-scroll-area">
+        <div class="prompter-content" id="prompterContent"></div>
+      </div>
+      <div class="countdown-overlay" id="countdown">
+        <span class="countdown-number" id="countdownNumber">3</span>
+      </div>
+    </div>
+
+    <div class="prompter-status">
+      <div class="status-left">
+        <span class="status-badge ready" id="statusBadge">READY</span>
+        <span id="elapsedTime">0:00</span>
+      </div>
+      <div class="status-right">
+        <span id="remainingTime">ETA ~0:00</span>
+        <span>Space = Play/Pause &middot; F = Fullscreen &middot; ? = Shortcuts</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHORTCUTS MODAL ───────────────────────────────── -->
+<div class="modal-overlay" id="shortcutsModal">
+  <div class="modal">
+    <h2>Keyboard Shortcuts</h2>
+    <div class="shortcut-row"><span>Play / Pause</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+    <div class="shortcut-row"><span>Reset scroll</span><div class="shortcut-keys"><kbd>R</kbd></div></div>
+    <div class="shortcut-row"><span>Speed up</span><div class="shortcut-keys"><kbd>&uarr;</kbd></div></div>
+    <div class="shortcut-row"><span>Slow down</span><div class="shortcut-keys"><kbd>&darr;</kbd></div></div>
+    <div class="shortcut-row"><span>Increase font</span><div class="shortcut-keys"><kbd>+</kbd></div></div>
+    <div class="shortcut-row"><span>Decrease font</span><div class="shortcut-keys"><kbd>&minus;</kbd></div></div>
+    <div class="shortcut-row"><span>Toggle mirror</span><div class="shortcut-keys"><kbd>M</kbd></div></div>
+    <div class="shortcut-row"><span>Fullscreen</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+    <div class="shortcut-row"><span>Toggle colors</span><div class="shortcut-keys"><kbd>C</kbd></div></div>
+    <div class="shortcut-row"><span>Scroll manually</span><div class="shortcut-keys"><kbd>Scroll</kbd> / <kbd>PgUp</kbd> / <kbd>PgDn</kbd></div></div>
+    <div class="shortcut-row"><span>Back to editor</span><div class="shortcut-keys"><kbd>Esc</kbd></div></div>
+    <div class="shortcut-row"><span>Quick start</span><div class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Enter</kbd></div></div>
+    <div style="margin-top:16px;text-align:right;">
+      <button class="btn primary" id="btnCloseShortcuts">Got it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────
+const STORAGE_KEY = 'demoTeleprompterScripts';
+let scripts = [];
+let activeScriptId = null;
+let isPlaying = false;
+let scrollPos = 0;
+let animFrame = null;
+let startTime = null;
+let isMirrored = false;
+let isFullscreen = false;
+let colorScheme = 0;
+
+const colorSchemes = [
+  { bg: '#000000', text: '#ffffff' },
+  { bg: '#001a00', text: '#33ff33' },
+  { bg: '#0a0a2e', text: '#f0e68c' },
+  { bg: '#ffffff', text: '#111111' },
+  { bg: '#1a1a2e', text: '#e94560' },
+];
+
+// ── DOM refs ───────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const sidebar = $('sidebar');
+const scriptList = $('scriptList');
+const editorPanel = $('editorPanel');
+const prompterPanel = $('prompterPanel');
+const scriptTitle = $('scriptTitle');
+const scriptTextarea = $('scriptTextarea');
+const wordCount = $('wordCount');
+const prompterContent = $('prompterContent');
+const prompterViewport = $('prompterViewport');
+const speedSlider = $('speedSlider');
+const speedValue = $('speedValue');
+const fontSlider = $('fontSlider');
+const fontValue = $('fontValue');
+const progressFill = $('progressFill');
+const statusBadge = $('statusBadge');
+const countdown = $('countdown');
+const countdownNumber = $('countdownNumber');
+const elapsedTime = $('elapsedTime');
+const remainingTime = $('remainingTime');
+
+// ── Persistence ────────────────────────────────────────
+function loadScripts() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    scripts = raw ? JSON.parse(raw) : [];
+  } catch { scripts = []; }
+  if (!scripts.length) {
+    scripts.push(createScript('Welcome Demo', `## Welcome to the Demo Teleprompter!
+
+This is your personal teleprompter for practicing demo scripts before presentations, customer calls, or video recordings.
+
+Here's how to use it:
+
+First, click "Edit" to switch to the editor view. Type or paste your script into the text area. Use blank lines to create natural pauses between sections.
+
+// This is a note line — it won't appear in the prompter. Use these for stage directions!
+
+## Tips for Great Demos
+
+Speak at a natural pace. The teleprompter speed can be adjusted to match your style.
+
+Make eye contact with your camera. Position this window right below your webcam for the best effect.
+
+Practice at least twice before the real thing. The first run is for familiarization, the second for polish.
+
+## Section Headings
+
+Lines starting with ## become highlighted section headers in the prompter, making it easy to see where you are in your script.
+
+Good luck with your next demo! 🎯`));
+    activeScriptId = scripts[0].id;
+    saveScripts();
+  }
+  if (!activeScriptId) activeScriptId = scripts[0]?.id;
+}
+
+function saveScripts() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(scripts));
+}
+
+function createScript(title, body) {
+  return {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    title: title || 'Untitled Script',
+    body: body || '',
+    created: Date.now(),
+    modified: Date.now()
+  };
+}
+
+// ── Script List Rendering ──────────────────────────────
+function renderScriptList() {
+  scriptList.innerHTML = '';
+  scripts.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'script-item' + (s.id === activeScriptId ? ' active' : '');
+    const words = countWords(s.body);
+    const mins = Math.ceil(words / 150);
+    el.innerHTML = `
+      <div class="script-item-info">
+        <div class="script-item-title">${escHtml(s.title)}</div>
+        <div class="script-meta">${words} words &middot; ~${mins} min</div>
+      </div>
+      <div class="script-item-actions">
+        <button class="dup-btn" title="Duplicate"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+        <button class="del-btn" title="Delete"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+      </div>`;
+    el.querySelector('.script-item-info').addEventListener('click', () => {
+      switchScript(s.id);
+    });
+    el.querySelector('.dup-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      duplicateScript(s.id);
+    });
+    el.querySelector('.del-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      deleteScript(s.id);
+    });
+    scriptList.appendChild(el);
+  });
+}
+
+function switchScript(id) {
+  saveCurrentScript();
+  activeScriptId = id;
+  loadActiveScript();
+  renderScriptList();
+}
+
+function loadActiveScript() {
+  const s = scripts.find(x => x.id === activeScriptId);
+  if (!s) return;
+  scriptTitle.value = s.title;
+  scriptTextarea.value = s.body;
+  updateWordCount();
+}
+
+function saveCurrentScript() {
+  const s = scripts.find(x => x.id === activeScriptId);
+  if (!s) return;
+  s.title = scriptTitle.value.trim() || 'Untitled Script';
+  s.body = scriptTextarea.value;
+  s.modified = Date.now();
+  saveScripts();
+}
+
+function duplicateScript(id) {
+  const orig = scripts.find(x => x.id === id);
+  if (!orig) return;
+  const dup = createScript(orig.title + ' (copy)', orig.body);
+  scripts.push(dup);
+  saveScripts();
+  switchScript(dup.id);
+}
+
+function deleteScript(id) {
+  if (scripts.length <= 1) return;
+  scripts = scripts.filter(x => x.id !== id);
+  if (activeScriptId === id) activeScriptId = scripts[0].id;
+  saveScripts();
+  loadActiveScript();
+  renderScriptList();
+}
+
+// ── Word Count ─────────────────────────────────────────
+function countWords(text) {
+  return text.trim().split(/\s+/).filter(w => w.length > 0 && !w.startsWith('//')).length;
+}
+
+function updateWordCount() {
+  const text = scriptTextarea.value;
+  const words = countWords(text);
+  const mins = (words / 150).toFixed(1);
+  wordCount.textContent = `${words} words \u00b7 ~${mins} min read`;
+}
+
+// ── Prompter Rendering ─────────────────────────────────
+function buildPrompterHTML(text) {
+  const lines = text.split('\n');
+  let html = '';
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('//')) continue; // skip notes
+    if (trimmed === '') {
+      html += '<span class="section-break"></span>';
+    } else if (trimmed.startsWith('## ')) {
+      html += `<span class="segment" style="font-weight:700;color:var(--accent);font-size:1.15em;margin-top:0.3em;display:block;">${escHtml(trimmed.slice(3))}</span>`;
+    } else {
+      html += `<span class="segment">${escHtml(trimmed)} </span>`;
+    }
+  }
+  return html;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Prompter Controls ──────────────────────────────────
+function showEditor() {
+  stopScrolling();
+  editorPanel.classList.remove('hidden');
+  prompterPanel.classList.add('hidden');
+  $('btnEdit').classList.add('active');
+  $('btnPrompt').classList.remove('active');
+  if (isFullscreen) toggleFullscreen();
+}
+
+function showPrompter(autoStart) {
+  saveCurrentScript();
+  const s = scripts.find(x => x.id === activeScriptId);
+  if (!s || !s.body.trim()) return;
+
+  editorPanel.classList.add('hidden');
+  prompterPanel.classList.remove('hidden');
+  $('btnEdit').classList.remove('active');
+  $('btnPrompt').classList.add('active');
+
+  const fontSize = parseInt(fontSlider.value);
+  prompterContent.style.fontSize = fontSize + 'px';
+  prompterContent.innerHTML = buildPrompterHTML(s.body);
+
+  // Add padding top/bottom so text can scroll fully
+  const vp = prompterViewport.offsetHeight;
+  prompterContent.style.paddingTop = (vp * 0.32) + 'px';
+  prompterContent.style.paddingBottom = (vp * 0.75) + 'px';
+
+  scrollPos = 0;
+  prompterContent.style.transform = `translateY(0px)`;
+  updateProgress();
+  updateStatus('ready');
+  elapsedTime.textContent = '0:00';
+  updateETA();
+
+  if (autoStart) {
+    startCountdown(() => startScrolling());
+  }
+}
+
+function startCountdown(cb) {
+  let count = 3;
+  countdown.classList.add('visible');
+  countdownNumber.textContent = count;
+  const iv = setInterval(() => {
+    count--;
+    if (count > 0) {
+      countdownNumber.textContent = count;
+      countdownNumber.style.animation = 'none';
+      void countdownNumber.offsetWidth;
+      countdownNumber.style.animation = 'countPulse .4s ease-out';
+    } else {
+      clearInterval(iv);
+      countdown.classList.remove('visible');
+      cb();
+    }
+  }, 800);
+}
+
+function startScrolling() {
+  if (isPlaying) return;
+  isPlaying = true;
+  startTime = Date.now() - (scrollPos / getSpeed()) * 1000;
+  updateStatus('playing');
+  tick();
+}
+
+function stopScrolling() {
+  isPlaying = false;
+  if (animFrame) cancelAnimationFrame(animFrame);
+  animFrame = null;
+  updateStatus('paused');
+}
+
+function togglePlay() {
+  if (isPlaying) stopScrolling();
+  else startScrolling();
+  updatePlayButton();
+}
+
+function resetScroll() {
+  stopScrolling();
+  scrollPos = 0;
+  prompterContent.style.transform = `translateY(0px)`;
+  updateProgress();
+  updatePlayButton();
+  updateStatus('ready');
+  elapsedTime.textContent = '0:00';
+  startTime = null;
+}
+
+function getSpeed() {
+  return parseFloat(speedSlider.value) * 12;
+}
+
+function getMaxScroll() {
+  return Math.max(0, prompterContent.scrollHeight - prompterViewport.offsetHeight * 0.35);
+}
+
+let lastTick = 0;
+function tick() {
+  if (!isPlaying) return;
+  const now = performance.now();
+  if (lastTick) {
+    const dt = (now - lastTick) / 1000;
+    scrollPos += getSpeed() * dt;
+  }
+  lastTick = now;
+
+  const maxScroll = getMaxScroll();
+  if (scrollPos >= maxScroll) {
+    scrollPos = maxScroll;
+    stopScrolling();
+    updatePlayButton();
+  }
+
+  const mirrorXform = isMirrored ? ' scaleX(-1)' : '';
+  prompterContent.style.transform = `translateY(${-scrollPos}px)${mirrorXform}`;
+  updateProgress();
+  updateElapsed();
+  updateETA();
+
+  animFrame = requestAnimationFrame(tick);
+}
+
+function updateProgress() {
+  const max = getMaxScroll();
+  const pct = max > 0 ? (scrollPos / max) * 100 : 0;
+  progressFill.style.width = Math.min(100, pct) + '%';
+}
+
+function updatePlayButton() {
+  $('iconPlay').style.display = isPlaying ? 'none' : '';
+  $('iconPause').style.display = isPlaying ? '' : 'none';
+  $('playLabel').textContent = isPlaying ? 'Pause' : 'Play';
+}
+
+function updateStatus(state) {
+  statusBadge.textContent = state.toUpperCase();
+  statusBadge.className = 'status-badge ' + state;
+}
+
+function updateElapsed() {
+  if (!startTime) return;
+  const sec = Math.floor((Date.now() - startTime) / 1000);
+  elapsedTime.textContent = formatTime(sec);
+}
+
+function updateETA() {
+  const max = getMaxScroll();
+  if (max <= 0 || !getSpeed()) { remainingTime.textContent = 'ETA ~0:00'; return; }
+  const remaining = max - scrollPos;
+  const sec = Math.max(0, Math.floor(remaining / getSpeed()));
+  remainingTime.textContent = `ETA ~${formatTime(sec)}`;
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+// ── Mirror & Fullscreen & Color ────────────────────────
+function toggleMirror() {
+  isMirrored = !isMirrored;
+  $('btnMirror').classList.toggle('active', isMirrored);
+  const mirrorXform = isMirrored ? ' scaleX(-1)' : '';
+  prompterContent.style.transform = `translateY(${-scrollPos}px)${mirrorXform}`;
+}
+
+function toggleFullscreen() {
+  isFullscreen = !isFullscreen;
+  document.body.classList.toggle('fullscreen', isFullscreen);
+  $('btnFullscreen').classList.toggle('active', isFullscreen);
+  // Recalculate padding
+  setTimeout(() => {
+    const vp = prompterViewport.offsetHeight;
+    prompterContent.style.paddingTop = (vp * 0.32) + 'px';
+    prompterContent.style.paddingBottom = (vp * 0.75) + 'px';
+  }, 50);
+}
+
+function cycleColor() {
+  colorScheme = (colorScheme + 1) % colorSchemes.length;
+  const c = colorSchemes[colorScheme];
+  prompterViewport.style.background = c.bg;
+  document.documentElement.style.setProperty('--prompt-bg', c.bg);
+  document.documentElement.style.setProperty('--prompt-text', c.text);
+}
+
+// ── Manual Scroll ──────────────────────────────────────
+prompterViewport.addEventListener('wheel', e => {
+  e.preventDefault();
+  scrollPos += e.deltaY * 0.8;
+  scrollPos = Math.max(0, Math.min(scrollPos, getMaxScroll()));
+  const mirrorXform = isMirrored ? ' scaleX(-1)' : '';
+  prompterContent.style.transform = `translateY(${-scrollPos}px)${mirrorXform}`;
+  updateProgress();
+}, { passive: false });
+
+// ── Import / Export ────────────────────────────────────
+$('btnImport').addEventListener('click', () => $('fileImport').click());
+$('fileImport').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const s = createScript(file.name.replace('.txt',''), reader.result);
+    scripts.push(s);
+    saveScripts();
+    switchScript(s.id);
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+$('btnExport').addEventListener('click', () => {
+  saveCurrentScript();
+  const s = scripts.find(x => x.id === activeScriptId);
+  if (!s) return;
+  const blob = new Blob([s.body], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (s.title || 'script') + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ── Button Events ──────────────────────────────────────
+$('toggleSidebar').addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+$('btnEdit').addEventListener('click', showEditor);
+$('btnPrompt').addEventListener('click', () => showPrompter(false));
+$('btnStartPrompter').addEventListener('click', () => showPrompter(true));
+$('btnPlay').addEventListener('click', () => {
+  if (!isPlaying && scrollPos === 0) {
+    startCountdown(() => { startScrolling(); updatePlayButton(); });
+  } else {
+    togglePlay();
+  }
+  updatePlayButton();
+});
+$('btnReset').addEventListener('click', resetScroll);
+$('btnBackToEdit').addEventListener('click', showEditor);
+$('btnMirror').addEventListener('click', toggleMirror);
+$('btnFullscreen').addEventListener('click', toggleFullscreen);
+$('btnFlipColor').addEventListener('click', cycleColor);
+$('btnNewScript').addEventListener('click', () => {
+  saveCurrentScript();
+  const s = createScript();
+  scripts.push(s);
+  saveScripts();
+  switchScript(s.id);
+  scriptTextarea.focus();
+});
+$('btnShortcuts').addEventListener('click', () => $('shortcutsModal').classList.add('visible'));
+$('btnCloseShortcuts').addEventListener('click', () => $('shortcutsModal').classList.remove('visible'));
+$('shortcutsModal').addEventListener('click', e => {
+  if (e.target === $('shortcutsModal')) $('shortcutsModal').classList.remove('visible');
+});
+
+speedSlider.addEventListener('input', () => {
+  speedValue.textContent = speedSlider.value;
+  updateETA();
+});
+fontSlider.addEventListener('input', () => {
+  fontValue.textContent = fontSlider.value;
+  prompterContent.style.fontSize = fontSlider.value + 'px';
+  // Recalculate padding on font change
+  const vp = prompterViewport.offsetHeight;
+  prompterContent.style.paddingTop = (vp * 0.32) + 'px';
+  prompterContent.style.paddingBottom = (vp * 0.75) + 'px';
+});
+
+scriptTextarea.addEventListener('input', () => {
+  updateWordCount();
+  autoSaveDebounced();
+});
+scriptTitle.addEventListener('input', autoSaveDebounced);
+
+let autoSaveTimer;
+function autoSaveDebounced() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    saveCurrentScript();
+    renderScriptList();
+  }, 600);
+}
+
+// ── Keyboard Shortcuts ─────────────────────────────────
+document.addEventListener('keydown', e => {
+  // Don't intercept when typing in editor
+  if (e.target === scriptTextarea || e.target === scriptTitle) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      showPrompter(true);
+    }
+    return;
+  }
+
+  if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+    $('shortcutsModal').classList.toggle('visible');
+    return;
+  }
+
+  const modal = $('shortcutsModal');
+  if (modal.classList.contains('visible')) {
+    if (e.key === 'Escape') modal.classList.remove('visible');
+    return;
+  }
+
+  if (prompterPanel.classList.contains('hidden')) return;
+
+  switch(e.key) {
+    case ' ':
+      e.preventDefault();
+      if (!isPlaying && scrollPos === 0) {
+        startCountdown(() => { startScrolling(); updatePlayButton(); });
+      } else {
+        togglePlay();
+      }
+      updatePlayButton();
+      break;
+    case 'r': case 'R':
+      if (!e.ctrlKey) resetScroll();
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      speedSlider.value = Math.min(20, parseInt(speedSlider.value) + 1);
+      speedValue.textContent = speedSlider.value;
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      speedSlider.value = Math.max(1, parseInt(speedSlider.value) - 1);
+      speedValue.textContent = speedSlider.value;
+      break;
+    case '+': case '=':
+      fontSlider.value = Math.min(80, parseInt(fontSlider.value) + 4);
+      fontValue.textContent = fontSlider.value;
+      prompterContent.style.fontSize = fontSlider.value + 'px';
+      break;
+    case '-': case '_':
+      fontSlider.value = Math.max(24, parseInt(fontSlider.value) - 4);
+      fontValue.textContent = fontSlider.value;
+      prompterContent.style.fontSize = fontSlider.value + 'px';
+      break;
+    case 'm': case 'M': toggleMirror(); break;
+    case 'f': case 'F': toggleFullscreen(); break;
+    case 'c': case 'C': cycleColor(); break;
+    case 'Escape':
+      if (isFullscreen) toggleFullscreen();
+      else showEditor();
+      break;
+    case 'PageDown':
+      e.preventDefault();
+      scrollPos = Math.min(scrollPos + 300, getMaxScroll());
+      prompterContent.style.transform = `translateY(${-scrollPos}px)${isMirrored?' scaleX(-1)':''}`;
+      updateProgress();
+      break;
+    case 'PageUp':
+      e.preventDefault();
+      scrollPos = Math.max(scrollPos - 300, 0);
+      prompterContent.style.transform = `translateY(${-scrollPos}px)${isMirrored?' scaleX(-1)':''}`;
+      updateProgress();
+      break;
+  }
+});
+
+// ── Init ───────────────────────────────────────────────
+loadScripts();
+renderScriptList();
+loadActiveScript();
+updateWordCount();
+</script>
+</body>
+</html>
