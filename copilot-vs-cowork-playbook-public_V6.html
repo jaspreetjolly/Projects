@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en-IN" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Copilot vs Cowork — Scenario Playbook</title>
+<style>
+:root{
+  --bg:#f5f7fb;--panel:#ffffff;--ink:#1b2333;--muted:#5b6578;--line:#e2e7f0;
+  --brand:#0f6cbd;--brand-2:#5b3fd6;--chip:#eef2f8;
+  --c-copilot:#0b8a5c;--c-copilot-bg:#e3f6ee;
+  --c-hybrid:#b26a00;--c-hybrid-bg:#fff2dc;
+  --c-cowork:#5b3fd6;--c-cowork-bg:#ece8fd;
+  --c-gap:#b42318;--c-gap-bg:#fde8e7;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1420;--panel:#171e2d;--ink:#e8ecf4;--muted:#9aa5ba;--line:#2a3347;
+    --brand:#4ea3f1;--brand-2:#9b86ff;--chip:#212a3c;
+    --c-copilot:#3ccf95;--c-copilot-bg:#123426;
+    --c-hybrid:#f3b24f;--c-hybrid-bg:#3a2a10;
+    --c-cowork:#a995ff;--c-cowork-bg:#251f45;
+    --c-gap:#ff8a80;--c-gap-bg:#3d1716;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+a{color:var(--brand)}
+.wrap{max-inline-size:1240px;margin-inline:auto;padding-inline:20px}
+header.hero{background:linear-gradient(120deg,var(--brand),var(--brand-2));color:#fff;padding-block:42px 34px}
+.hero h1{margin:0 0 8px;font-size:2.1rem;letter-spacing:-.01em}
+.hero p{margin:0;max-inline-size:820px;opacity:.95;font-size:1.05rem}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-block-start:24px}
+.kpi{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-size:1.7rem;line-height:1.1}
+.kpi span{font-size:.85rem;opacity:.92}
+nav.tabs{position:sticky;inset-block-start:0;z-index:5;background:var(--panel);border-block-end:1px solid var(--line);box-shadow:var(--shadow)}
+nav.tabs .wrap{display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{background:none;border:0;border-block-end:3px solid transparent;padding:14px 16px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav.tabs button.active{color:var(--brand);border-block-end-color:var(--brand)}
+section.view{display:none;padding-block:26px 50px}
+section.view.active{display:block}
+h2{font-size:1.45rem;margin:0 0 6px}
+h3{margin:0}
+.lead{color:var(--muted);margin:0 0 18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-block-end:18px}
+.legend .item{border-radius:12px;padding:14px;border:1px solid var(--line);background:var(--panel)}
+.legend .item h4{margin:0 0 4px;font-size:1rem}
+.legend .item p{margin:0;font-size:.9rem;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:0;text-transform:none;white-space:nowrap;flex-shrink:0;line-height:1.4}
+.v-copilot{color:var(--c-copilot);background:var(--c-copilot-bg)}
+.v-hybrid{color:var(--c-hybrid);background:var(--c-hybrid-bg)}
+.v-cowork{color:var(--c-cowork);background:var(--c-cowork-bg)}
+.v-gap{color:var(--c-gap);background:var(--c-gap-bg)}
+.bar-copilot{border-inline-start:5px solid var(--c-copilot)}
+.bar-hybrid{border-inline-start:5px solid var(--c-hybrid)}
+.bar-cowork{border-inline-start:5px solid var(--c-cowork)}
+.bar-gap{border-inline-start:5px solid var(--c-gap)}
+.controls{display:flex;flex-direction:column;gap:12px;margin-block-end:18px}
+.search{inline-size:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chiprow .lbl{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-inline-end:4px;min-inline-size:72px}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:6px 12px;border-radius:999px;font:inherit;font-size:.86rem;cursor:pointer}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:.9rem;margin-block-end:12px}
+.linkbtn{background:none;border:0;color:var(--brand);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px}
+.card .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card .top h3{flex:1 1 auto;min-inline-size:0}
+.apps li .badge{margin-block-end:2px}
+.card h3{font-size:1.02rem;line-height:1.3}
+.card .sum{margin:0;color:var(--muted);font-size:.93rem}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:.75rem;padding:2px 8px;border-radius:6px;background:var(--chip);color:var(--ink);border:1px solid var(--line)}
+.tag.only{background:transparent;border:1px dashed var(--c-hybrid);color:var(--c-hybrid);font-weight:600}
+.tag.ext{background:transparent;border:1px solid var(--brand-2);color:var(--brand-2)}
+.st{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid var(--line)}
+.st-Documented{color:var(--c-copilot);background:var(--c-copilot-bg);border-color:var(--c-copilot)}
+.st-Pilot{color:var(--c-hybrid);background:var(--c-hybrid-bg);border-color:var(--c-hybrid)}
+.st-Preview{color:var(--c-cowork);background:var(--c-cowork-bg);border-color:var(--c-cowork)}
+.srcs{margin:4px 0 0;padding-inline-start:18px;font-size:.85rem}
+.srcs li{margin-block-end:3px}
+.cites{font-size:.8rem;color:var(--muted)}
+.cites a{margin-inline-end:8px}
+.tag.flag{background:var(--c-hybrid-bg);border:1px solid var(--c-hybrid);color:var(--c-hybrid);font-weight:600}
+.card details{border-block-start:1px solid var(--line);padding-block-start:8px}
+.card summary{cursor:pointer;font-weight:600;color:var(--brand);font-size:.9rem}
+.dl{display:grid;gap:10px;margin-block-start:10px;font-size:.9rem}
+.dl b{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-block-end:2px}
+.prompt{background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:10px;font-family:Consolas,"Cascadia Mono",monospace;font-size:.84rem;white-space:pre-wrap}
+.copy{align-self:flex-start;border:1px solid var(--brand);background:transparent;color:var(--brand);border-radius:8px;padding:5px 10px;font:inherit;font-size:.82rem;cursor:pointer}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+table{inline-size:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:10px 12px;border-block-end:1px solid var(--line);text-align:start;vertical-align:top}
+th{background:var(--chip);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);position:sticky;inset-block-start:0}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.yes{color:var(--c-copilot);font-weight:700}
+.part{color:var(--c-hybrid);font-weight:700}
+.no{color:var(--c-gap);font-weight:700}
+.wiz{max-inline-size:760px}
+.q{margin-block-end:18px}
+.q p{font-weight:600;margin:0 0 8px}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:8px 16px;border-radius:10px;font:inherit;cursor:pointer}
+.opt.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.result{margin-block-start:10px;border-radius:12px;padding:16px;display:none}
+.result.show{display:block}
+.result h3{margin-block-end:6px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.rules .panel h3{font-size:1.05rem;margin-block-end:8px}
+.rules ul{margin:0;padding-inline-start:18px}
+.rules li{margin-block-end:6px}
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.apps .panel h3{display:flex;justify-content:space-between;align-items:center;font-size:1.05rem;margin-block-end:8px}
+.apps ul{margin:0;padding-inline-start:18px;font-size:.92rem}
+.count{font-size:.78rem;background:var(--chip);border-radius:999px;padding:2px 9px;color:var(--muted)}
+footer{border-block-start:1px solid var(--line);padding-block:20px;color:var(--muted);font-size:.85rem}
+.toast{position:fixed;inset-block-end:20px;inset-inline-start:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:8px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media print{nav.tabs,.controls,.copy,.toast{display:none}section.view{display:block}details{display:block}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <h1>Copilot vs Cowork — Scenario Playbook</h1>
+    <p>Which everyday Microsoft 365 work your Copilot licence already covers — across Copilot Chat, Outlook, Teams, Word, Excel, PowerPoint, SharePoint, OneDrive and more — and where Cowork's multi-app, bulk and automated work is worth paying for. Copilot now takes many single-app actions itself, so check here before reaching for Cowork. This is a Copilot-first enablement guide, not a definitive feature or licensing reference.</p>
+    <div class="kpis" id="kpis"></div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="wrap" role="tablist">
+    <button class="active" data-view="scenarios" role="tab" aria-selected="true" id="tab-scenarios" aria-controls="scenarios" tabindex="0">Scenario library</button>
+    <button data-view="decide" role="tab" aria-selected="false" id="tab-decide" aria-controls="decide" tabindex="-1">Which one should I use?</button>
+    <button data-view="apps" role="tab" aria-selected="false" id="tab-apps" aria-controls="apps" tabindex="-1">By app</button>
+    <button data-view="matrix" role="tab" aria-selected="false" id="tab-matrix" aria-controls="matrix" tabindex="-1">Capability matrix</button>
+    <button data-view="rules" role="tab" aria-selected="false" id="tab-rules" aria-controls="rules" tabindex="-1">Rules of thumb</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<section class="view active" id="scenarios" role="tabpanel" aria-labelledby="tab-scenarios" tabindex="0">
+  <h2>Scenario library</h2>
+  <p class="lead">Filter by verdict, work type or evidence. Open any card for the exact place to run it, why, a ready-to-use prompt and what Cowork adds.</p>
+  <div class="legend" id="legend"></div>
+  <div class="controls panel">
+    <input class="search" id="q" type="search" placeholder="Search scenarios, e.g. attachments, deck, invoice, recap…" aria-label="Search scenarios">
+    <div class="chiprow" id="f-verdict"><span class="lbl">Verdict</span></div>
+    <div class="chiprow" id="f-cat"><span class="lbl">Work type</span></div>
+    <div class="chiprow" id="f-status"><span class="lbl">Evidence</span></div>
+    <div class="chiprow" id="f-only"><span class="lbl">Show</span></div>
+  </div>
+  <div class="meta"><span id="resultCount"></span><button class="linkbtn" id="reset" type="button">Clear all filters</button></div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section class="view" id="decide" role="tabpanel" aria-labelledby="tab-decide" tabindex="0">
+  <h2>Which one should I use?</h2>
+  <p class="lead">Answer four questions about the task in front of you.</p>
+  <div class="panel wiz" id="wiz"></div>
+</section>
+
+<section class="view" id="apps" role="tabpanel" aria-labelledby="tab-apps" tabindex="0">
+  <h2>Scenarios by app</h2>
+  <p class="lead">Where each scenario runs best. Items marked <span class="tag only">App-only</span> work only inside that specific app, not from Copilot Chat.</p>
+  <div class="apps" id="appGrid"></div>
+</section>
+
+<section class="view" id="matrix" role="tabpanel" aria-labelledby="tab-matrix" tabindex="0">
+  <h2>Capability matrix</h2>
+  <p class="lead">Side-by-side view of what each option can do today.</p>
+  <div class="tblwrap"><table id="matrixTbl"></table></div>
+  <div class="panel" style="margin-block-start:14px"><h3>Microsoft sources for the matrix</h3><ol class="srcs" id="msrc"></ol></div>
+</section>
+
+<section class="view" id="rules" role="tabpanel" aria-labelledby="tab-rules" tabindex="0">
+  <h2>Rules of thumb</h2>
+  <p class="lead">A quick mental model to stop over-spending on Cowork for work your Copilot licence already covers.</p>
+  <div class="rules" id="rulesGrid"></div>
+  <div class="panel" style="margin-block-start:14px"><h3>All Microsoft articles cited in this playbook</h3><p class="lead" style="margin:4px 0 0">Evidence review dated 18 October 2026.</p><ol class="srcs" id="allsrc"></ol></div>
+</section>
+
+</main>
+
+<footer><div class="wrap">Capabilities change often and rollout differs by tenant, licence, client and region. Evidence review dated 18 October 2026. Labels apply to the scenario as written: Documented means Microsoft documents the relevant capability; Preview means preview/Frontier or rollout-dependent. Pilot first means each step is documented but Microsoft does not describe the workflow end to end. Public documentation was reviewed, but the scenarios have not been live-tested in your tenant. Validate permissions, licensing, billing, availability and end-to-end behaviour before demonstrations or production use. <span id="audience"></span>Last updated 18 October 2026.<br>This is an independent guide and is not affiliated with, endorsed or sponsored by Microsoft. Microsoft, Microsoft 365, Copilot, Outlook, Teams, Word, Excel, PowerPoint, SharePoint, OneDrive, Power BI, Forms, Planner and Clipchamp are trademarks of the Microsoft group of companies. Product names and features are described for information only; licensing and availability are set by Microsoft and your organisation.</div></footer>
+<div class="toast" id="toast">Prompt copied</div>
+
+<script>
+(function(){
+"use strict";
+var VERDICTS={
+  copilot:{label:"Copilot is enough",desc:"Your standard Microsoft 365 Copilot licence does the job — often faster — inside the app or in Copilot Chat."},
+  hybrid:{label:"Copilot drafts, Cowork finishes",desc:"Copilot covers the thinking and drafting; Cowork only adds value if you want it executed end-to-end or at scale."},
+  cowork:{label:"Needs Cowork",desc:"Multi-step, multi-app, bulk, scheduled or event-driven work where something must actually be done on your behalf."}
+};
+var CATS=["Email","Files & content","Meetings & calendar","Data & analysis","Documents & decks","Automation","Collaboration","Research"];
+
+/* s = source: core | ext ; only = app it is limited to */
+var S=[
+{
+"id": 1,
+"s": "core",
+"v": "copilot",
+"t": "Find a workbook in SharePoint, read it and draft an email from it",
+"c": "Email",
+"apps": [
+"Copilot Chat",
+"Outlook",
+"SharePoint",
+"Excel"
+],
+"only": null,
+"sum": "Locate a file by description, pull the key numbers and turn them into an email draft.",
+"where": "Copilot Chat (type / to reference the workbook, or let Copilot search for it), then copy the draft into Outlook; or Outlook > New mail > Draft with Copilot for the wording.",
+"why": "Search, read and draft are all core Copilot skills grounded in Microsoft Graph. No action beyond drafting is needed — you press Send.",
+"p": "Find the latest 'Plant Dispatch Plan' workbook on the Supply Chain SharePoint site. Summarise this week's shortfall by plant and draft a crisp email to the plant heads asking for recovery plans by Wednesday.",
+"cw": "Only if you want it to send automatically, attach the file and repeat every week.",
+"status": "Documented",
+"src": [
+{
+"title": "Refer to specific files and more in Microsoft Copilot",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/refer-to-specific-files-and-more-in-microsoft-365-copilot"
+},
+{
+"title": "Draft an email message with Copilot in Outlook",
+"url": "https://support.microsoft.com/en-us/outlook/copilot-pages/draft-an-email-message-with-copilot-in-outlook"
+}
+]
+},
+{
+"id": 2,
+"s": "core",
+"v": "hybrid",
+"t": "Organise a SharePoint library with Copilot",
+"c": "Files & content",
+"apps": [
+"SharePoint"
+],
+"only": "SharePoint",
+"sum": "Use Copilot in the library to add autofill columns, set up rules and create views so files are grouped and filtered — a lower-cost alternative to Cowork for single-library tidy-ups.",
+"where": "Open the SharePoint document library and use Copilot in SharePoint there (floating Copilot button or AI actions on selected files). It is not available on the SharePoint Home page, Viva Connections or SharePoint sites inside Teams. General availability began rolling out on 30 September 2026; everyday use is included with a Microsoft 365 Copilot licence, while work at scale and real-time site-wide autofill ('advanced work') use Copilot Credits.",
+"why": "Microsoft documents SharePoint library rules with move and copy actions when a defined trigger and condition are met. That is different from asking Copilot to perform an arbitrary one-off or cross-library bulk move. Treat the rule-based action as documented; validate any broader move/reorganisation workflow separately.",
+"p": "In this library, create an autofill column for financial quarter and a view that groups files by quarter. Then set up a rule to notify me when a new 'FY26 Q2' file is added. If supported by the rule builder, create a rule to move reviewed invoices to the Verified Expenses folder when the defined condition is met.",
+"cw": "Use Cowork when the job spans many libraries or sites, needs a separate deliverable or must run on a schedule. Cowork can edit Office files in OneDrive and SharePoint but cannot delete files or folders; bulk moving of files is not explicitly documented, so test it first.",
+"status": "Preview",
+"src": [
+{
+"title": "Get started with Copilot in SharePoint",
+"url": "https://learn.microsoft.com/en-us/sharepoint/copilot-in-sharepoint-get-started"
+},
+{
+"title": "Copilot in SharePoint: An overview",
+"url": "https://support.microsoft.com/en-us/sharepoint/copilot-in-sharepoint/copilot-in-sharepoint-an-overview"
+},
+{
+"title": "Automate workflows in a SharePoint document library",
+"url": "https://learn.microsoft.com/en-us/sharepoint/copilot-in-sharepoint-automate-workflows"
+},
+{
+"title": "Copilot Cowork common questions",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"
+},
+{
+"title": "What’s new in Copilot in SharePoint: October 2026",
+"url": "https://techcommunity.microsoft.com/blog/spblog/what%E2%80%99s-new-in-copilot-in-sharepoint-october-2026/4535423"
+}
+]
+},
+{
+"id": 3,
+"s": "core",
+"v": "copilot",
+"t": "Build a presentation from a document",
+"c": "Documents & decks",
+"apps": [
+"PowerPoint"
+],
+"only": "PowerPoint",
+"sum": "Turn a Word document into a designed first-draft deck.",
+"where": "PowerPoint > Copilot > create a presentation by referencing a file (type / to pick it). Start from your organisation's template file first. In PowerPoint Agent Mode you can reference an existing deck so its theme and styles are applied; referencing other SharePoint or OneDrive files in Agent Mode on the web is still in development.",
+"why": "Copilot in PowerPoint uses your template's existing layouts and keeps its theme, and works best with Word documents under 24 MB. When you reference a file you cannot add extra instructions in the same prompt, so refine the deck in follow-up prompts.",
+"p": "Create a presentation from /Peak Season Readiness Review.docx. Then, in follow-up prompts: trim it to 10 slides for the leadership team, add speaker notes and end with a slide of three decisions needed.",
+"cw": "Cowork is worth it only when the deck is one of several linked deliverables (deck + memo + workbook) or must be refreshed from live data on a schedule.",
+"status": "Documented",
+"src": [
+{
+"title": "Create a new presentation with Copilot in PowerPoint",
+"url": "https://support.microsoft.com/en-us/powerpoint/copilot/create-a-new-presentation-with-copilot-in-powerpoint"
+},
+{
+"title": "Add a slide from a file with Copilot in PowerPoint",
+"url": "https://support.microsoft.com/en-us/powerpoint/copilot/add-a-slide-from-a-file-with-copilot-in-powerpoint"
+}
+]
+},
+{
+"id": 4,
+"s": "core",
+"v": "cowork",
+"flag": "Test in your tenant",
+"t": "Save Outlook email attachments into a SharePoint folder",
+"c": "Files & content",
+"apps": [
+"Outlook",
+"SharePoint"
+],
+"only": null,
+"sum": "Pull attachments out of a set of emails (e.g. supplier invoices or COAs) and file them in the right SharePoint folder.",
+"where": "Cowork — test first.",
+"why": "Copilot in Outlook reads and summarises attachments, but filing them into a SharePoint library is not a documented Copilot feature. Cowork's Email skill manages attachments, and Cowork can create SharePoint and OneDrive folders and reorganise files, so the building blocks are documented — but the full extract → rename → upload workflow (permissions, duplicates, errors) is not documented and must be tested end to end.",
+"p": "From all emails received this month with subject containing 'Certificate of Analysis', save the PDF attachments into Quality > COA > Oct-2026 on the Supply Chain site, renamed as Supplier_Batch_Date.",
+"cw": "If it works in your tenant, Cowork handles the full extract → rename → upload loop and reports what it filed. Fallback: a Power Automate flow.",
+"status": "Pilot",
+"src": [
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "Copilot Cowork overview",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/"
+}
+]
+},
+{
+"id": 6,
+"s": "core",
+"v": "copilot",
+"t": "Summarise a long email thread and draft a reply",
+"c": "Email",
+"apps": [
+"Outlook"
+],
+"only": null,
+"sum": "Catch up on a 40-message escalation and reply with the right tone.",
+"where": "Outlook > Summarise (top of the thread) then Reply > Draft with Copilot. Also possible from Copilot Chat.",
+"why": "Native single-thread summarisation and drafting.",
+"p": "Summarise this thread: who is waiting on whom, what was committed, and open risks. Then draft a reply confirming revised delivery dates.",
+"cw": "Not needed.",
+"status": "Documented",
+"src": [
+{
+"title": "Summarize an email thread with Copilot in Outlook",
+"url": "https://support.microsoft.com/en-us/outlook/copilot-pages/summarize-an-email-thread-with-copilot-in-outlook"
+},
+{
+"title": "Draft an email message with Copilot in Outlook",
+"url": "https://support.microsoft.com/en-us/outlook/copilot-pages/draft-an-email-message-with-copilot-in-outlook"
+}
+]
+},
+{
+"id": 7,
+"s": "core",
+"v": "copilot",
+"t": "Email coaching — check tone and clarity before sending",
+"c": "Email",
+"apps": [
+"Outlook"
+],
+"only": "Outlook",
+"sum": "Get suggestions on tone, clarity and reader sentiment for a sensitive email, then apply them all or one by one.",
+"where": "Outlook — New mail > Copilot icon > Coaching by Copilot. Documented for classic and new Outlook for Windows, the latest Outlook for Mac, iOS and Android.",
+"why": "Coaching is a compose-time feature of Outlook; 'Apply all suggestions' rewrites the draft for you.",
+"p": "(Coaching by Copilot on your draft) — no prompt needed.",
+"cw": "Not needed.",
+"status": "Documented",
+"src": [
+{
+"title": "Get email coaching with Copilot in Outlook",
+"url": "https://support.microsoft.com/en-us/outlook/copilot-pages/get-email-coaching-with-copilot-in-outlook"
+}
+]
+},
+{
+"id": 8,
+"s": "core",
+"v": "copilot",
+"t": "Schedule a meeting from an email thread",
+"c": "Meetings & calendar",
+"apps": [
+"Outlook"
+],
+"only": "Outlook",
+"sum": "Turn a thread into a meeting invite with agenda and the right attendees.",
+"where": "New Outlook: open the thread > Schedule with Copilot in the toolbar (or More options > Other reply actions > Schedule with Copilot). Classic Outlook for Windows: Schedule with Copilot from the Copilot menu, or ask Copilot chat to schedule the meeting.",
+"why": "Copilot suggests a meeting title and agenda from the thread and attaches the thread; you review the invite and send. Copilot chat in Outlook can also suggest a time that suits attendees.",
+"p": "Schedule a 30-minute call with everyone on this thread next week to close the freight rate dispute. Add an agenda.",
+"cw": "Use Cowork when scheduling is one step in a longer job — for example finding a slot, sending the invite and following up — from a single request.",
+"status": "Documented",
+"src": [
+{
+"title": "Create a meeting agenda with Copilot in Outlook",
+"url": "https://support.microsoft.com/en-us/outlook/copilot-outlook/create-a-meeting-agenda-with-copilot-in-outlook"
+},
+{
+"title": "Schedule a meeting using Copilot",
+"url": "https://support.microsoft.com/en-us/outlook/schedule-a-meeting-using-copilot"
+},
+{
+"title": "Microsoft 365 Roadmap – Scheduling with Copilot chat in classic Outlook for Windows (ID 542185)",
+"url": "https://www.microsoft.com/microsoft-365/roadmap?id=542185"
+}
+]
+},
+{
+"id": 9,
+"s": "core",
+"v": "copilot",
+"t": "Meeting recap, decisions and action items",
+"c": "Meetings & calendar",
+"apps": [
+"Teams"
+],
+"only": "Teams",
+"sum": "Get a recap, decisions and who-owns-what after a recorded/transcribed meeting.",
+"where": "Teams meeting > Copilot during the meeting, or the meeting chat / Recap tab afterwards.",
+"why": "Copilot can run during a meeting without a transcript, but asking about the meeting afterwards needs transcription turned on.",
+"p": "What decisions were made, what's still open, and list action items with owners and due dates.",
+"cw": "See 'Meeting follow-up executed end-to-end' for the Cowork extension.",
+"status": "Documented",
+"src": [
+{
+"title": "Catch up on meetings with Microsoft Copilot in Teams",
+"url": "https://support.microsoft.com/en-us/teams/copilot/catch-up-on-meetings-with-microsoft-365-copilot-in-teams"
+},
+{
+"title": "Manage Microsoft Copilot in Teams meetings and events - Microsoft Teams",
+"url": "https://learn.microsoft.com/en-us/microsoftteams/copilot-teams-transcription"
+}
+]
+},
+{
+"id": 10,
+"s": "core",
+"v": "copilot",
+"t": "Catch up on Teams chats and channels",
+"c": "Collaboration",
+"apps": [
+"Teams",
+"Copilot Chat"
+],
+"only": null,
+"sum": "Summarise what you missed in busy chats/channels while travelling to plants.",
+"where": "Teams chat/channel > Copilot, or Copilot Chat ('What did I miss…').",
+"why": "Native read-and-summarise over Teams content.",
+"p": "What did I miss in the Logistics Control Tower channel since Monday? Highlight anything that needs my decision.",
+"cw": "Only if you want it posted as a daily digest automatically.",
+"status": "Documented",
+"src": [
+{
+"title": "How to use Microsoft Copilot in Teams chats and channels",
+"url": "https://support.microsoft.com/en-us/teams/copilot/how-to-use-microsoft-365-copilot-in-teams-chats-and-channels"
+},
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+}
+]
+},
+{
+"id": 11,
+"s": "core",
+"v": "copilot",
+"t": "Excel formulas, pivots, charts and what-if analysis",
+"c": "Data & analysis",
+"apps": [
+"Excel"
+],
+"only": "Excel",
+"sum": "Generate formula columns, pivots, conditional formatting and charts; ask questions of a table.",
+"where": "Excel only: open the Copilot pane and use edit, plan or chat mode (Windows, Mac and web; mobile has fewer modes). The COPILOT() worksheet function was a preview feature and was withdrawn on 14 September 2026; use the Copilot pane instead.",
+"why": "In-grid work is native to Excel: Copilot creates formulas, PivotTables, charts and conditional formatting directly in the workbook, and edits stay editable. Calculation must be set to Automatic for Copilot editing.",
+"p": "Add a column that flags SKUs where days-of-cover < 7, then build a pivot of flagged SKUs by depot and a bar chart.",
+"cw": "Use Cowork when the analysis spans many workbooks or must produce a separate deliverable pack.",
+"status": "Documented",
+"src": [
+{
+"title": "COPILOT Function",
+"url": "https://support.microsoft.com/en-us/excel/functions/copilot-function"
+},
+{
+"title": "Get started with Copilot in Excel",
+"url": "https://support.microsoft.com/en-us/excel/copilot/get-started-with-copilot-in-excel"
+},
+{
+"title": "Frequently asked questions about Copilot in Excel",
+"url": "https://support.microsoft.com/en-us/excel/copilot/frequently-asked-questions-about-copilot-in-excel"
+}
+]
+},
+{
+"id": 12,
+"s": "core",
+"v": "copilot",
+"t": "Draft a Word document grounded in your files",
+"c": "Documents & decks",
+"apps": [
+"Word"
+],
+"only": null,
+"sum": "Write an SOP, proposal or policy referencing existing documents and emails.",
+"where": "Word > open Copilot (bottom right), describe the document and type / to reference files, emails or meetings. Or use Copilot Chat with Copilot Pages for collaborative drafting.",
+"why": "Native grounded drafting.",
+"p": "Draft an SOP for handling damaged-in-transit returns using /Returns Policy.docx and /Q2 Claims Analysis.xlsx.",
+"cw": "Not needed unless the doc is part of a multi-deliverable job.",
+"status": "Documented",
+"src": [
+{
+"title": "Draft and add content with Copilot in Word",
+"url": "https://support.microsoft.com/en-us/word/copilot/draft-and-add-content-with-copilot-in-word"
+},
+{
+"title": "Welcome to Copilot in Word",
+"url": "https://support.microsoft.com/en-us/word/welcome-to-copilot-in-word"
+},
+{
+"title": "Get started with Microsoft Copilot Pages",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-microsoft-365-copilot-pages"
+}
+]
+},
+{
+"id": 13,
+"s": "core",
+"v": "copilot",
+"t": "Summarise or compare files without opening them",
+"c": "Files & content",
+"apps": [
+"OneDrive",
+"SharePoint"
+],
+"only": null,
+"sum": "Get summaries or a side-by-side comparison of up to five files without opening them.",
+"where": "OneDrive on the web: select up to five files > Copilot > Summarise or Compare files. In a SharePoint library: select files > Copilot in SharePoint > Summarise or Compare these files. Videos and images are not supported.",
+"why": "Built into the file browser experience.",
+"p": "Compare these three transporter contracts: rates, penalty clauses, termination terms and renewal dates.",
+"cw": "Use Cowork for dozens of files and a structured comparison workbook.",
+"status": "Documented",
+"src": [
+{
+"title": "Compare your files with Copilot in OneDrive",
+"url": "https://support.microsoft.com/en-us/onedrive/compare-your-files-with-copilot-in-onedrive"
+},
+{
+"title": "Summarize your files with Copilot",
+"url": "https://support.microsoft.com/en-us/onedrive/summarize-your-files-with-copilot"
+},
+{
+"title": "Copilot in SharePoint: An overview",
+"url": "https://support.microsoft.com/en-us/sharepoint/copilot-in-sharepoint/copilot-in-sharepoint-an-overview"
+}
+]
+},
+{
+"id": 14,
+"s": "core",
+"v": "copilot",
+"flag": "Check rollout",
+"t": "Ask questions of a whole SharePoint site with an agent",
+"c": "Research",
+"apps": [
+"SharePoint",
+"Teams"
+],
+"only": "SharePoint",
+"sum": "Create a site agent scoped to your SOPs/policies and share it with teams.",
+"where": "SharePoint site or library > Create an agent (from the library or list command bar, or by selecting files). Needs a Microsoft 365 Copilot licence (or pay-as-you-go billing for SharePoint agents) and edit rights on the site. Share the agent link for use in Teams or Copilot Chat.",
+"why": "Custom SharePoint agents are scoped to the sites, pages and files you choose and answer only from content the user can access. Every site also has Copilot in SharePoint, which Microsoft describes as the upgrade to the ready-made site agent; it began rolling out to general availability on 30 September 2026, so confirm what has reached your tenant. Only custom-built agents can be shared.",
+"p": "Create an agent over the Warehouse SOPs library that answers floor-supervisor questions and always cites the SOP section.",
+"cw": "Not needed.",
+"status": "Preview",
+"src": [
+{
+"title": "Create an agent in SharePoint",
+"url": "https://support.microsoft.com/en-us/sharepoint/copilot-in-sharepoint/create-an-agent-in-sharepoint"
+},
+{
+"title": "Get started with agents in SharePoint",
+"url": "https://support.microsoft.com/en-us/sharepoint/copilot-in-sharepoint/get-started-with-agents-in-sharepoint"
+},
+{
+"title": "Get started with Copilot in SharePoint",
+"url": "https://learn.microsoft.com/en-us/sharepoint/copilot-in-sharepoint-get-started"
+}
+]
+},
+{
+"id": 15,
+"s": "core",
+"v": "copilot",
+"t": "Prioritise your inbox and surface what needs you",
+"c": "Email",
+"apps": [
+"Outlook",
+"Copilot Chat"
+],
+"only": null,
+"sum": "Identify the emails that need your action today.",
+"where": "Outlook > Prioritize by Copilot (rolling out gradually; applies to mail received after you turn it on), or Copilot Chat for a look-back over recent days.",
+"why": "Read-only triage is a Copilot strength.",
+"p": "Which emails from the last 3 days need a decision or reply from me? Group by urgency.",
+"cw": "Copilot in Outlook can now create rules, folders and categories itself. Use Cowork for a one-off clean-up of existing mail plus drafted replies or a tracker.",
+"status": "Documented",
+"src": [
+{
+"title": "Prioritize my inbox",
+"url": "https://support.microsoft.com/en-us/outlook/copilot-outlook/prioritize-my-inbox"
+},
+{
+"title": "Create, view, update, and delete Outlook rules with Microsoft Copilot",
+"url": "https://support.microsoft.com/en-us/outlook/create-and-view-outlook-rules-with-microsoft-365-copilot"
+}
+],
+"flag": "Rolling out"
+},
+{
+"id": 20,
+"s": "ext",
+"v": "copilot",
+"t": "Deep research report with citations",
+"c": "Research",
+"apps": [
+"Copilot Chat"
+],
+"only": "Copilot Chat",
+"sum": "Multi-source investigation across web and work data, returned as a structured report.",
+"where": "Microsoft 365 Copilot app > Agents > Researcher. Needs a Microsoft 365 Copilot licence and the agent enabled by your admin.",
+"why": "Researcher is purpose-built for long-form reasoning and citations.",
+"p": "Research price trends for our key raw materials over the last 12 months, drivers for the next two quarters, and implications for our input costs.",
+"cw": "Cowork if you need the output as a formatted Word/PowerPoint pack and distributed.",
+"status": "Documented",
+"src": [
+{
+"title": "Get started with Researcher in Microsoft Copilot",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-researcher-in-microsoft-365-copilot"
+},
+{
+"title": "Copilot Cowork overview",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/"
+}
+]
+},
+{
+"id": 21,
+"s": "ext",
+"v": "copilot",
+"t": "Analyse a data file with Python-level rigour",
+"c": "Data & analysis",
+"apps": [
+"Copilot Chat"
+],
+"only": "Copilot Chat",
+"sum": "Statistics, trends and outlier detection on Excel or CSV files without writing code, returned as a report with charts and tables.",
+"where": "Microsoft 365 Copilot app > Analyst agent.",
+"why": "Analyst works through the data step by step — calculating statistics, identifying trends and showing outliers — and returns an easy-to-read report with charts and tables.",
+"p": "Using /Depot Sales 24 months.xlsx, show the demand trend by depot over the last 24 months and flag depots with unusual variance or outliers.",
+"cw": "Cowork if the result must update a shared workbook and email owners.",
+"status": "Documented",
+"src": [
+{
+"title": "Get started with Analyst in Microsoft Copilot",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-analyst-in-microsoft-365-copilot"
+}
+]
+},
+{
+"id": 22,
+"s": "ext",
+"v": "copilot",
+"flag": "Report pane needs Fabric/Premium capacity",
+"t": "Ask questions of a Power BI report",
+"c": "Data & analysis",
+"apps": [
+"Power BI",
+"Copilot Chat"
+],
+"only": null,
+"sum": "Ask natural-language questions about Power BI data and summarise reports — in the Power BI report pane, in Copilot Chat or in Cowork.",
+"where": "Three routes: (1) Power BI service > open the report > Copilot pane (generally available); (2) Copilot Chat — attach or link a report and ask (generally available since September 2026); (3) Cowork with the Fabric IQ plugin. The standalone, full-screen Power BI Copilot is in preview and not yet in some regions, including India West.",
+"why": "Requirements differ by route. The in-report Copilot pane needs the report on a paid Fabric capacity (F2 or higher) or Power BI Premium (P1 or higher) — Pro or PPU alone isn't enough — plus admin enablement; outside the US/EU data boundary it is off until the admin allows cross-geo processing. Copilot Chat needs a Microsoft 365 Copilot licence and access to the report. The Cowork plugin needs no extra Fabric capacity or PPU licence beyond what the content already requires. The report pane doesn't support anomaly detection, forecasting or key-influencer analysis.",
+"p": "Show OTIF by transporter for the West region for last month compared with the month before.",
+"cw": "Cowork can query the report through the Fabric IQ plugin and combine the numbers with email and Excel data in one deliverable. It doesn't yet cite the source report, so open the report to confirm any figure you share. For trend or outlier analysis on exported data, try the Analyst agent.",
+"status": "Documented",
+"src": [
+{
+"title": "Copilot for Power BI overview",
+"url": "https://learn.microsoft.com/en-us/power-bi/create-reports/copilot-introduction"
+},
+{
+"title": "Ask data questions with Copilot and Fabric IQ",
+"url": "https://learn.microsoft.com/en-us/power-bi/create-reports/copilot-ask-data-question"
+},
+{
+"title": "Fabric IQ in Microsoft 365 Copilot Chat",
+"url": "https://learn.microsoft.com/en-us/fabric/iq/connectors/microsoft-365-copilot-overview"
+},
+{
+"title": "Fabric IQ in Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/fabric/iq/connectors/cowork-overview"
+}
+]
+},
+{
+"id": 23,
+"s": "ext",
+"v": "copilot",
+"t": "Generate images or visuals for a communication",
+"c": "Documents & decks",
+"apps": [
+"Copilot Chat",
+"PowerPoint"
+],
+"only": null,
+"sum": "Create an illustration, poster or icon for a campaign or deck.",
+"where": "Microsoft 365 Copilot app > Create (images, posters, banners), Copilot Chat, or Copilot in PowerPoint ('Create an image' inserts an AI image into the deck).",
+"why": "Native image generation.",
+"p": "Create a clean illustration of a water bottling line with safety signage for a plant safety poster.",
+"cw": "Not needed.",
+"status": "Documented",
+"src": [
+{
+"title": "Create AI-Generated Images With the Microsoft Copilot App",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/create-ai-generated-images-with-the-microsoft-365-copilot-app"
+},
+{
+"title": "Get Started with Create in the Microsoft Copilot App",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-create-in-the-microsoft-365-copilot-app"
+},
+{
+"title": "Add an image to your presentation with Copilot in PowerPoint",
+"url": "https://support.microsoft.com/en-us/powerpoint/copilot/add-an-image-to-your-presentation-with-copilot-in-powerpoint"
+}
+]
+},
+{
+"id": 24,
+"s": "ext",
+"v": "copilot",
+"t": "Translate a document or email",
+"c": "Documents & decks",
+"apps": [
+"Word",
+"Outlook"
+],
+"only": null,
+"sum": "Translate SOPs or notices into regional languages for plant teams.",
+"where": "Word > Review > Translate > Translate Document (creates a translated copy and keeps formatting), or ask Copilot in Word to translate and adapt; Outlook > Translate message; Copilot Chat for short text.",
+"why": "Native.",
+"p": "Translate this SOP into Hindi and Marathi, keeping the numbered structure.",
+"cw": "Cowork for batch translation of many files into folders.",
+"status": "Documented",
+"src": [
+{
+"title": "Translate text into a different language",
+"url": "https://support.microsoft.com/en-us/office/languages/translate-text-into-a-different-language"
+},
+{
+"title": "Welcome to Copilot in Word",
+"url": "https://support.microsoft.com/en-us/word/welcome-to-copilot-in-word"
+}
+],
+"flag": "Check languages"
+},
+{
+"id": 25,
+"s": "ext",
+"v": "copilot",
+"t": "Summarise a recorded video or town hall",
+"c": "Meetings & calendar",
+"apps": [
+"Clipchamp (Stream)"
+],
+"only": "Clipchamp (Stream)",
+"sum": "Get a summary and answers about any video with a transcript, with timestamps that jump to the source moment.",
+"where": "Clipchamp video player (formerly Stream) on the web > open the video > Copilot pane on the right. Generate a transcript first if there isn't one (Edit > Video settings > Transcript and captions).",
+"why": "Video-level Copilot sits in the Clipchamp player (formerly Stream). Needs a Microsoft 365 Copilot licence and the Copilot for SharePoint service plan. It reads only the original transcript (more than 100 words), doesn't edit the video, and needs third-party cookies enabled in the browser.",
+"p": "Summarise the key messages and list any commitments made to plant staff.",
+"cw": "Not needed.",
+"status": "Documented",
+"src": [
+{
+"title": "Ask questions & get summaries of any video with Microsoft Copilot in the Clipchamp player",
+"url": "https://support.microsoft.com/en-us/clipchamp/stream-pages/ask-questions-get-summaries-of-any-video-with-microsoft-copilot-in-the-clipchamp-player"
+},
+{
+"title": "Learn more about the Clipchamp video capabilities in Microsoft 365",
+"url": "https://support.microsoft.com/en-us/clipchamp/stream-pages/learn-more-about-the-clipchamp-video-capabilities-in-microsoft-365"
+}
+]
+},
+{
+"id": 26,
+"s": "ext",
+"v": "copilot",
+"t": "Project workspace with Copilot Notebooks and Pages",
+"c": "Collaboration",
+"apps": [
+"Copilot Chat",
+"OneNote",
+"Loop"
+],
+"only": null,
+"sum": "Gather files, pages, meeting notes and links in a Notebook; get answers grounded only in those references; turn answers into shareable Pages.",
+"where": "Microsoft 365 Copilot app > Notebooks (also opens in OneNote for the fuller workspace). Pages: from any Copilot Chat answer.",
+"why": "Native. By default Notebooks answer from the references you add; in Frontier you can switch a prompt to 'Work and web' for broader context. Needs a Copilot or Copilot Chat licence and a SharePoint or OneDrive service plan. Full Microsoft 365 Copilot users get up to 300 grounded references and premium sources (Teams, SharePoint, OneDrive); Copilot Chat users get 50 references from standard sources only.",
+"p": "Create a notebook for 'New Plant Commissioning' with these files and draft a launch checklist page.",
+"cw": "Not needed.",
+"status": "Documented",
+"src": [
+{
+"title": "Add references to your Microsoft Copilot Notebook",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/add-references-to-your-microsoft-365-copilot-notebook"
+},
+{
+"title": "How Microsoft Copilot Notebooks works",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/how-microsoft-365-copilot-notebooks-works"
+},
+{
+"title": "Get started with Microsoft Copilot Pages",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-microsoft-365-copilot-pages"
+},
+{
+"title": "What's New in Notebooks | October 2026",
+"url": "https://techcommunity.microsoft.com/blog/microsoft-copilot-blog/whats-new-in-notebooks--october-2026/4559105"
+}
+]
+},
+{
+"id": 27,
+"s": "ext",
+"v": "copilot",
+"t": "Plan and track a project with the Planner agent",
+"c": "Collaboration",
+"apps": [
+"Planner",
+"Teams"
+],
+"only": "Planner",
+"sum": "Generate a plan, tasks and status from goals.",
+"where": "Planner > open a basic or premium plan shared with a Microsoft 365 group > Planner Agent. Needs a Microsoft 365 Copilot licence; generating tasks from goals needs a premium plan (Planner Plan 1 or Project Plan 3/5).",
+"why": "The agent is built into shared Planner plans: it can take assigned tasks, generate tasks from goals (premium) and write status reports.",
+"p": "Create a plan for the new depot go-live with workstreams, tasks and owners.",
+"cw": "Cowork to pull actions from meeting transcripts and email owners.",
+"status": "Documented",
+"src": [
+{
+"title": "Access Planner Agent",
+"url": "https://support.microsoft.com/en-us/planner/copilot/access-planner-agent"
+}
+]
+},
+{
+"id": 28,
+"s": "ext",
+"v": "copilot",
+"t": "Facilitate a live meeting — notes, agenda tracking, time keeping",
+"c": "Meetings & calendar",
+"apps": [
+"Teams"
+],
+"only": "Teams",
+"sum": "Facilitator agent: live co-authored notes, agenda timer, Q&A in meeting chat, and a Word document from the discussion.",
+"where": "Scheduled Teams meetings — turn on via meeting Options > Copilot and other AI when scheduling, or More actions > Turn on Facilitator (organisers/presenters on Teams desktop or web). Not available in instant meetings, Teams calls or external meetings. Microsoft has announced support for channel meetings, rolling out from mid-November to early December 2026 (Message Center MC1461165).",
+"why": "In-meeting agent; a Copilot licence is needed to turn it on, and Loop experiences in Teams must be enabled. Core features are generally available; task tracking into Planner is still in public preview. It can't read agendas in encrypted/sensitivity-labelled invites.",
+"p": "@Facilitator, here's the agenda: dispatch review (10 min), transporter issues (15 min), peak-season readiness (10 min).",
+"cw": "Not documented for live meetings — use Cowork before the meeting to prepare, or afterwards to follow up.",
+"status": "Documented",
+"src": [
+{
+"title": "Facilitator in Microsoft Teams meetings",
+"url": "https://support.microsoft.com/en-gb/teams/copilot/facilitator-in-microsoft-teams-meetings"
+},
+{
+"title": "Set up Facilitator in Microsoft Teams",
+"url": "https://learn.microsoft.com/en-us/microsoftteams/facilitator-teams"
+}
+]
+},
+{
+"id": 29,
+"s": "ext",
+"v": "copilot",
+"t": "Recurring summary in Copilot (scheduled prompt)",
+"c": "Automation",
+"apps": [
+"Copilot Chat",
+"Teams",
+"Outlook"
+],
+"only": null,
+"sum": "A prompt that re-runs on a schedule and shows the result in the Copilot app.",
+"where": "Copilot Chat, Copilot in Teams, or Outlook (web and desktop): hover over a prompt > Schedule this prompt. Up to 10 scheduled prompts; manage via Settings and more > Scheduled prompts.",
+"why": "Good for read-only recurring summaries you check yourself.",
+"p": "Every Monday 8am: summarise last week's escalations from transporters.",
+"cw": "Use Cowork when the recurring job must take action — send email, update files, post in Teams — with your approval.",
+"status": "Documented",
+"src": [
+{
+"title": "Schedule your most used Copilot prompts",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/schedule-your-most-used-copilot-prompts"
+},
+{
+"title": "Manage Scheduled Prompts for Microsoft Copilot",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/scheduled-prompts"
+}
+]
+},
+{
+"id": 30,
+"s": "ext",
+"v": "hybrid",
+"t": "Meeting follow-up executed end-to-end",
+"c": "Meetings & calendar",
+"apps": [
+"Teams",
+"Outlook",
+"Excel"
+],
+"only": null,
+"sum": "Recap → action tracker → personalised follow-up emails to each owner.",
+"where": "Copilot in Teams for the recap; Cowork to execute the rest.",
+"why": "Copilot gives the recap; creating trackers and sending individual emails is multi-step action work.",
+"p": "From today's S&OP review transcript, build an action tracker in Excel, and email each owner only their actions with due dates.",
+"cw": "Cowork creates the Excel tracker and sends each owner's email once you approve, then reports back.",
+"status": "Documented",
+"src": [
+{
+"title": "Catch up on meetings with Microsoft Copilot in Teams",
+"url": "https://support.microsoft.com/en-us/teams/copilot/catch-up-on-meetings-with-microsoft-365-copilot-in-teams"
+},
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+}
+]
+},
+{
+"id": 31,
+"s": "ext",
+"v": "copilot",
+"t": "Create a SharePoint list and populate it from a spreadsheet",
+"c": "Files & content",
+"apps": [
+"SharePoint",
+"Excel",
+"Lists"
+],
+"only": null,
+"sum": "Stand up a tracker list (e.g. supplier audit tracker) and load existing rows.",
+"where": "Clean the workbook with Copilot in Excel, then create the list natively: Lists app or SharePoint > New list > From Excel. Copilot in SharePoint can also create and edit lists as it reaches your tenant.",
+"why": "Importing from Excel turns table headings into columns and rows into list items (not available in GCC High or DoD). Copilot in SharePoint, rolling out to general availability from 30 September 2026, includes creating and editing lists with a Microsoft 365 Copilot licence. Creating SharePoint lists is not among Cowork's documented actions.",
+"p": "Clean /Audit Plan FY27.xlsx — normalise supplier names, add status, risk and due-date columns — ready to import as a 'Supplier Audit Tracker' list.",
+"cw": "Only needed if many source files must be consolidated first or the tracker is part of a larger multi-deliverable job; Cowork can prepare the import workbook, but list creation by Cowork is not documented.",
+"status": "Preview",
+"src": [
+{
+"title": "Create a list based on a spreadsheet",
+"url": "https://support.microsoft.com/en-us/sharepoint/lists/data-and-lists/create-a-list-based-on-a-spreadsheet"
+},
+{
+"title": "Get started with Copilot in SharePoint",
+"url": "https://learn.microsoft.com/en-us/sharepoint/copilot-in-sharepoint-get-started"
+},
+{
+"title": "Get started with Copilot in Excel",
+"url": "https://support.microsoft.com/en-us/excel/copilot/get-started-with-copilot-in-excel"
+}
+]
+},
+{
+"id": 32,
+"s": "ext",
+"v": "hybrid",
+"t": "Research brief delivered as a formatted document and shared",
+"c": "Research",
+"apps": [
+"Copilot Chat",
+"Word",
+"Outlook"
+],
+"only": null,
+"sum": "Researcher gives the content; Cowork packages and distributes it.",
+"where": "Researcher for content; Cowork for document + email.",
+"why": "Researcher stops at the answer. Copilot in SharePoint can now create a report from site content and email it after showing you a preview, but turning Researcher output into a formatted Word brief and distributing it is still multi-step action work.",
+"p": "Research competitor pricing moves in our category in 2026, produce a 3-page Word brief, and email it to the commercial leadership group.",
+"cw": "Formats the Word brief, saves it to OneDrive and emails it after you approve the send. Cowork's Deep Research skill can also do the research itself.",
+"status": "Documented",
+"src": [
+{
+"title": "Copilot Cowork overview",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/"
+},
+{
+"title": "Copilot Cowork common questions",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"
+},
+{
+"title": "Get started with Researcher in Microsoft Copilot",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-researcher-in-microsoft-365-copilot"
+},
+{
+"title": "What’s new in Copilot in SharePoint: October 2026",
+"url": "https://techcommunity.microsoft.com/blog/spblog/what%E2%80%99s-new-in-copilot-in-sharepoint-october-2026/4535423"
+}
+]
+},
+{
+"id": 33,
+"s": "ext",
+"v": "hybrid",
+"t": "Power BI insight turned into an executive pack",
+"c": "Data & analysis",
+"apps": [
+"Power BI",
+"PowerPoint",
+"Outlook"
+],
+"only": null,
+"sum": "Query the model, then build slides and send.",
+"where": "Cowork with the Fabric IQ (Power BI) plugin, or Power BI Copilot for the numbers and Cowork for the pack.",
+"why": "Combining tools and sending is beyond single-app Copilot.",
+"p": "Using the Supply Chain Power BI report, pull last month's fill rate, OTIF and freight cost per case, build a 5-slide pack and email it to the leadership team.",
+"cw": "Queries the Power BI report through the Fabric IQ plugin (or uses figures you give it), builds the five-slide PowerPoint and emails it after your approval. Queries respect Power BI permissions and row-level security, but Cowork doesn't yet cite the source report — check the figures in the report before approving the send.",
+"status": "Documented",
+"src": [
+{
+"title": "Copilot Cowork overview",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/"
+},
+{
+"title": "Copilot for Power BI overview",
+"url": "https://learn.microsoft.com/en-us/power-bi/create-reports/copilot-introduction"
+},
+{
+"title": "Fabric IQ in Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/fabric/iq/connectors/cowork-overview"
+}
+]
+},
+{
+"id": 34,
+"s": "ext",
+"v": "copilot",
+"t": "Create Outlook inbox rules from a prompt",
+"c": "Email",
+"apps": [
+"Outlook",
+"Copilot Chat"
+],
+"only": null,
+"sum": "Describe a rule in plain English; Copilot builds it, creating any missing folder or category.",
+"where": "Copilot Chat (full-page) or the Copilot pane in Outlook — classic and new Outlook for Windows, Outlook on the web, Mac, iOS and Android. Rollout varies, so confirm in your tenant.",
+"why": "Copilot can create, view, update and delete inbox rules after showing you a summary to confirm. Rules apply to future mail only.",
+"p": "Move emails with 'Invoice' in the subject to the Invoices folder, and categorise emails from my manager as Important.",
+"cw": "Not needed for rules. Use Cowork to sort mail that's already in the inbox.",
+"status": "Documented",
+"src": [
+{
+"title": "Create, view, update, and delete Outlook rules with Microsoft Copilot",
+"url": "https://support.microsoft.com/en-us/outlook/create-and-view-outlook-rules-with-microsoft-365-copilot"
+}
+]
+},
+{
+"id": 35,
+"s": "ext",
+"v": "copilot",
+"t": "Automatic RSVP rules with Calendar Instructions",
+"c": "Meetings & calendar",
+"apps": [
+"Outlook",
+"Copilot Chat"
+],
+"only": null,
+"sum": "Auto-accept, auto-decline, follow or clear meetings by person, subject or conflict.",
+"where": "Copilot in new Outlook or the Microsoft 365 Copilot app; also Settings > Copilot > Calendar instructions in new Outlook for Windows or Outlook on the web. Not documented for classic Outlook.",
+"why": "Calendar Instructions run in the cloud, so they apply even when Outlook is closed. You can review recent accepted, declined, followed and removed meetings in Copilot.",
+"p": "Always accept meetings from my manager if my calendar is free, and always decline meetings that conflict with existing meetings.",
+"cw": "Not needed for standing rules. Use Cowork (or reply yourself) when a decline needs a personal explanation or a judgement call on specific meetings.",
+"status": "Documented",
+"src": [
+{
+"title": "Calendar Instructions in Outlook and Copilot",
+"url": "https://support.microsoft.com/en-us/outlook/calendar-instructions-in-outlook-and-copilot"
+}
+]
+},
+{
+"id": 36,
+"s": "ext",
+"v": "copilot",
+"t": "Draft a survey or quiz in Microsoft Forms",
+"c": "Collaboration",
+"apps": [
+"Forms",
+"Copilot Chat"
+],
+"only": null,
+"sum": "Generate a form from a prompt, refine questions, draft invitations, track responses and get an insights summary.",
+"where": "Forms > New form > Draft with Copilot, or Microsoft 365 Copilot app > Create > Create a form. In Forms, use Boost response to draft invitations and track responses.",
+"why": "Copilot in Forms covers drafting, review, sending support and results analysis; the Copilot app's Create section can also generate a form from a description or files. Needs a Microsoft 365 Copilot licence. Creating a form from Cowork isn't documented.",
+"p": "Create a transporter feedback survey covering on-time pickup, vehicle hygiene, documentation and driver behaviour.",
+"cw": "Cowork can analyse exported responses alongside other data. Building the form from Cowork isn't documented.",
+"status": "Documented",
+"src": [
+{
+"title": "Welcome to Copilot in Forms",
+"url": "https://support.microsoft.com/en-us/forms/welcome-to-copilot-in-forms"
+},
+{
+"title": "Frequently asked questions about Copilot in Forms",
+"url": "https://support.microsoft.com/en-us/forms/frequently-asked-questions-about-copilot-in-forms"
+},
+{
+"title": "Create forms quickly with the Microsoft Copilot app",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/create-forms-quickly-with-the-microsoft-365-copilot-app"
+}
+]
+},
+{
+"id": 40,
+"s": "ext",
+"v": "hybrid",
+"t": "Inbox clean-up: rules, folders and a backlog sweep",
+"c": "Email",
+"apps": [
+"Outlook",
+"Copilot Chat"
+],
+"only": null,
+"sum": "Set up rules, folders and categories by prompt; clear the existing backlog and draft replies.",
+"where": "Rules, folders and categories: Copilot in Outlook or Copilot Chat (you confirm each). Backlog sweep across existing mail plus drafted replies: Cowork.",
+"why": "Copilot can create, update and delete Outlook inbox rules — including the folder or category they need — after you confirm, and Copilot chat in Outlook can now organise, move, archive and flag existing messages (the full action mode is a Frontier preview and not available in the EU). Microsoft says bulk actions across large sets of email may not be comprehensive, so a full backlog sweep with drafted replies is still Cowork work.",
+"p": "Copilot: Create a rule to move emails with 'freight rate' in the subject to a Freight Rates folder and categorise emails from our top-20 suppliers as Key Supplier.\nCowork: Go through last week's inbox, move newsletters to Read Later, move anything from top-20 suppliers into a Key Suppliers folder and draft replies to the five most urgent.",
+"cw": "The one-off sweep of existing mail and the drafted replies.",
+"status": "Documented",
+"src": [
+{
+"title": "Create, view, update, and delete Outlook rules with Microsoft Copilot",
+"url": "https://support.microsoft.com/en-us/outlook/create-and-view-outlook-rules-with-microsoft-365-copilot"
+},
+{
+"title": "Copilot Cowork common questions",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"
+},
+{
+"title": "Use Microsoft Copilot in Outlook to manage your inbox (Frontier)",
+"url": "https://support.microsoft.com/en-gb/outlook/use-microsoft-365-copilot-in-outlook-to-manage-your-inbox-frontier"
+},
+{
+"title": "What’s New in Microsoft Copilot | August 2026",
+"url": "https://techcommunity.microsoft.com/blog/microsoft365copilotblog/what%E2%80%99s-new-in-microsoft-copilot--august-2026/4551960"
+}
+]
+},
+{
+"id": 41,
+"s": "ext",
+"v": "cowork",
+"t": "Event-triggered workflow when a specific email arrives",
+"c": "Automation",
+"apps": [
+"Outlook",
+"Excel",
+"Teams"
+],
+"only": null,
+"sum": "\"Whenever a transporter sends a delay notice, log it and alert the control tower.\"",
+"where": "Cowork event-driven task (or Power Automate for fixed logic that must run with no approval).",
+"why": "Copilot's documented automations are scheduled prompts and Calendar Instructions for meeting invites; it has no documented trigger on incoming email or Teams messages. Cowork event-driven tasks start when a matching email arrives or a Teams channel or chat message is posted (optionally only when you are @mentioned). The trigger starts the task; what happens next depends on the instructions and permissions you set up.",
+"p": "Whenever an email arrives with 'delay' from a transporter domain, add a row to the Delay Log workbook and post a summary in the Logistics Control Tower channel.",
+"cw": "The trigger runs automatically on each matching email; actions may still pause for approval. The task runs with your permissions. By default, actions that send, post or change a shared system are prepared for your approval; you can pre-authorise actions when you create the task. Rate limits apply. Validate the action and approval behaviour for this workflow before demonstrating it.",
+"status": "Documented",
+"src": [
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "Manage Copilot Cowork for your organization",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-admin-governance"
+}
+]
+},
+{
+"id": 42,
+"s": "ext",
+"v": "cowork",
+"t": "Scheduled digest that is emailed or posted automatically",
+"c": "Automation",
+"apps": [
+"Outlook",
+"Teams"
+],
+"only": null,
+"sum": "Daily/weekly digest delivered to you or a team without opening Copilot.",
+"where": "Cowork scheduled prompt (up to 25 per user).",
+"why": "Delivering to other people's inboxes or a channel is an action. Copilot's own scheduled prompts (up to 10, in Copilot Chat, Teams and Outlook) put the result in your Copilot chats, with an optional email notification that it is ready; sending or posting the digest to others is not documented.",
+"p": "Every weekday at 8am, email me the top 10 supply risks from yesterday's emails and Teams, with owners.",
+"cw": "The schedule runs automatically (up to 25 scheduled prompts); actions may still pause for approval. Sends and posts ask for approval by default unless you pre-authorise them when you set up the task; use 'Activate and run now' to watch and approve the first run.",
+"status": "Documented",
+"src": [
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "Schedule your most used Copilot prompts",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/schedule-your-most-used-copilot-prompts"
+},
+{
+"title": "Manage Copilot Cowork for your organization",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-admin-governance"
+}
+]
+},
+{
+"id": 43,
+"s": "ext",
+"v": "cowork",
+"t": "Consolidate many Excel files into one master workbook",
+"c": "Data & analysis",
+"apps": [
+"Excel",
+"SharePoint",
+"OneDrive"
+],
+"only": null,
+"sum": "Merge 20+ plant or depot submissions with different layouts into one clean model.",
+"where": "Cowork.",
+"why": "Copilot in Excel works inside the open workbook; it can search your work files for context, but Microsoft does not document it merging many workbooks into a new model. Cowork can read files and folders from OneDrive and SharePoint and create a new Excel workbook.",
+"p": "Combine all files in 'Plant Submissions/Oct' into one workbook with a summary tab by plant, flagging missing submissions.",
+"cw": "Reads every file, normalises and builds the master.",
+"status": "Documented",
+"src": [
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "Frequently asked questions about Copilot in Excel",
+"url": "https://support.microsoft.com/en-us/excel/copilot/frequently-asked-questions-about-copilot-in-excel"
+}
+]
+},
+{
+"id": 44,
+"s": "ext",
+"v": "cowork",
+"t": "Personalised emails to many recipients (mail merge)",
+"c": "Email",
+"apps": [
+"Outlook",
+"Excel"
+],
+"only": null,
+"sum": "Send each distributor their own numbers and asks.",
+"where": "Cowork.",
+"why": "Copilot Chat drafts one email at a time and can send it from an embedded Outlook draft (Microsoft's support page lists sending email directly from Copilot Chat as a Frontier feature, while later Message Center updates indicate wider rollout — confirm in your tenant). Cowork sends emails after approval and offers Approve All, so each step is documented — but run a bulk send on a small, controlled set first to check recipient matching and content.",
+"p": "For each distributor in /Distributor Scorecard.xlsx, email the contact their scorecard row with a short note on their two weakest metrics.",
+"cw": "Generates each personalised email and sends after your approval (Approve All, or allow sends to a specific domain for the session). Check a sample before approving the batch.",
+"status": "Documented",
+"src": [
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "Draft and send email using Microsoft Copilot Chat",
+"url": "https://support.microsoft.com/en-us/office/bizchat-overview/draft-and-send-email-using-microsoft-365-copilot-chat"
+},
+{
+"title": "What’s New in Microsoft Copilot | August 2026",
+"url": "https://techcommunity.microsoft.com/blog/microsoft365copilotblog/what%E2%80%99s-new-in-microsoft-copilot--august-2026/4551960"
+}
+],
+"flag": "Pilot on a small set"
+},
+{
+"id": 45,
+"s": "ext",
+"v": "hybrid",
+"t": "Calendar clean-up and focus-time protection",
+"c": "Meetings & calendar",
+"apps": [
+"Outlook",
+"Copilot Chat"
+],
+"only": null,
+"sum": "Decline low-value or conflicting meetings, remove cancelled ones and block focus time.",
+"where": "Standing rules: Calendar Instructions via Copilot in new Outlook or the Microsoft 365 Copilot app. One-off review of the next two weeks: Cowork.",
+"why": "Calendar Instructions let Copilot auto-accept, auto-decline (including conflicts), follow meetings and remove cancelled ones. A judgement-based review of specific upcoming meetings plus creating focus blocks is still multi-step work.",
+"p": "Copilot: Always decline meetings that conflict with existing meetings, and automatically delete cancelled meetings.\nCowork: Review my next two weeks, decline meetings with no agenda where I'm optional and block 2 hours of focus time each morning.",
+"cw": "The one-off review and focus-time blocks.",
+"status": "Documented",
+"src": [
+{
+"title": "Calendar Instructions in Outlook and Copilot",
+"url": "https://support.microsoft.com/en-us/outlook/calendar-instructions-in-outlook-and-copilot"
+},
+{
+"title": "Copilot Cowork common questions",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"
+}
+]
+},
+{
+"id": 46,
+"s": "ext",
+"v": "cowork",
+"flag": "Test in your tenant",
+"t": "Restructure OneDrive/SharePoint folders in bulk",
+"c": "Files & content",
+"apps": [
+"OneDrive",
+"SharePoint"
+],
+"only": null,
+"sum": "Apply a new folder taxonomy across many files.",
+"where": "Cowork. Microsoft documents that Cowork can create SharePoint and OneDrive folders and reorganise existing files into new or existing folders. Bulk renaming is not documented.",
+"why": "Copilot in SharePoint can set up library rules that move or copy files when a condition is met, and larger-scale SharePoint work uses Copilot Credits. A one-off restructure of many files across folders from a single request is Cowork work.",
+"p": "Reorganise Logistics/Contracts into folders by vendor, and move expired contracts to an Archive folder. List anything you weren't sure about.",
+"cw": "Reorganises into new or existing folders and logs changes. It cannot delete files in OneDrive or SharePoint. Test how it handles duplicates, ambiguous matches, naming conflicts and failures before running it on a live library.",
+"status": "Documented",
+"src": [
+{
+"title": "Copilot Cowork overview",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/"
+},
+{
+"title": "Copilot Cowork common questions",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"
+},
+{
+"title": "Get started with Copilot in SharePoint",
+"url": "https://learn.microsoft.com/en-us/sharepoint/copilot-in-sharepoint-get-started"
+}
+]
+},
+{
+"id": 47,
+"s": "ext",
+"v": "cowork",
+"t": "Multi-deliverable pack in one request",
+"c": "Documents & decks",
+"apps": [
+"Word",
+"PowerPoint",
+"Excel",
+"Outlook"
+],
+"only": null,
+"sum": "Board memo + deck + backing workbook produced together and consistent.",
+"where": "Cowork.",
+"why": "Copilot in each app, or Copilot Chat's file-creation agents, typically builds one file per request; Cowork plans a multistep task and creates Word, Excel and PowerPoint files together from the same sources.",
+"p": "Prepare the peak-season readiness pack: a 2-page memo, an 8-slide deck and an inventory workbook by depot, all using the same numbers.",
+"cw": "Builds all three in one task and saves them to your OneDrive Cowork folder; check the figures are consistent across files.",
+"status": "Documented",
+"src": [
+{
+"title": "Copilot Cowork overview",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/"
+},
+{
+"title": "Copilot Cowork common questions",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"
+}
+]
+},
+{
+"id": 48,
+"s": "ext",
+"v": "hybrid",
+"t": "Reconcile data across email, files and lists",
+"c": "Data & analysis",
+"apps": [
+"Outlook",
+"Excel",
+"SharePoint"
+],
+"only": null,
+"sum": "Match supplier confirmations in email against the PO tracker workbook and flag gaps.",
+"where": "Cowork.",
+"why": "Copilot Chat can compare a week of emails with a tracker file and list obvious gaps; Cowork is worth it when the volume is high or you want a finished exception workbook and follow-up actions. Cowork reads emails and edits Excel files in OneDrive or SharePoint; Microsoft shows it reading a SharePoint list to build a report, but reconciling against or updating SharePoint lists is not documented, so test it.",
+"p": "Compare PO confirmations received by email this week with the open PO tracker and list POs with no confirmation or mismatched quantities.",
+"cw": "The email-and-workbook comparison is a plausible pilot; SharePoint-list access and the full end-to-end workflow are not confirmed by the cited documentation. Validate the source coverage and output before relying on it; draft follow-ups for review rather than sending automatically.",
+"status": "Pilot",
+"src": [
+{
+"title": "Copilot Cowork common questions",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"
+},
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "What's New in Copilot in SharePoint: September 2026",
+"url": "https://techcommunity.microsoft.com/blog/spblog/whats-new-in-copilot-in-sharepoint-september-2026/4535422"
+}
+],
+"flag": "Test in your tenant"
+},
+{
+"id": 49,
+"s": "ext",
+"v": "cowork",
+"flag": "Frontier preview",
+"t": "Build an interactive dashboard or simple app",
+"c": "Documents & decks",
+"apps": [
+"Copilot Chat",
+"OneDrive"
+],
+"only": null,
+"sum": "Turn data into an interactive dashboard or a lightweight tracker app and share it.",
+"where": "Cowork App skill — requires enrolment in the Frontier preview programme; not generally available.",
+"why": "Building, publishing and sharing a working app is a preview capability.",
+"p": "Build an app showing depot stock-outs by week from /Stockout Log.xlsx with filters by region.",
+"cw": "Builds, publishes and shares the app by link with colleagues in your organisation who can use Microsoft 365 Copilot (App skill is Frontier only). Anyone with the link can see the app's data, so share carefully. Microsoft's new Code experience in the Copilot app (announced September 2026, billed with Copilot Credits) is an emerging alternative for apps and dashboards.",
+"status": "Preview",
+"src": [
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "Get started with Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/get-started"
+},
+{
+"title": "What's new in Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/whats-new"
+}
+]
+},
+{
+"id": 50,
+"s": "ext",
+"v": "hybrid",
+"t": "Out-of-office handover",
+"c": "Email",
+"apps": [
+"Outlook",
+"Teams"
+],
+"only": null,
+"sum": "Set auto-reply, summarise open threads and brief your delegate.",
+"where": "Auto-reply: Copilot Chat or the Copilot pane in Outlook ('Set up automatic replies for 20–24 Oct'), or Outlook settings. Summary and handover email: Copilot drafts it; Cowork can send it.",
+"why": "Copilot can set, update and turn off automatic replies from a prompt after you confirm (English only for now). Sending the handover note on your behalf is Cowork work.",
+"p": "I'm out 20–24 Oct. Summarise open threads needing action and email the summary to my deputy.",
+"cw": "Compiles and sends the handover note.",
+"status": "Documented",
+"src": [
+{
+"title": "Manage automatic replies with Microsoft Copilot in Outlook",
+"url": "https://support.microsoft.com/en-us/outlook/manage-automatic-replies-with-microsoft-365-copilot-in-outlook"
+},
+{
+"title": "Manage automatic replies with Microsoft Copilot Chat",
+"url": "https://support.microsoft.com/en-us/microsoft-365-copilot/manage-automatic-replies-with-microsoft-365-copilot-chat"
+},
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+}
+]
+},
+{
+"id": 51,
+"s": "ext",
+"v": "cowork",
+"t": "Vendor onboarding kit",
+"c": "Files & content",
+"apps": [
+"SharePoint",
+"Word",
+"Outlook"
+],
+"only": null,
+"sum": "Create folder, draft NDA/checklist from templates, email the vendor.",
+"where": "Cowork.",
+"why": "Multi-app setup with file creation and sending.",
+"p": "Onboard 'Sai Logistics': create their folder under Vendors, draft the NDA from our template and email them the onboarding checklist.",
+"cw": "Creates the folder, drafts the NDA in Word and emails the checklist after your approval of the send.",
+"status": "Documented",
+"src": [
+{
+"title": "Copilot Cowork overview",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/"
+},
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+}
+]
+},
+{
+"id": 52,
+"s": "ext",
+"v": "cowork",
+"t": "Weekly S&OP pack refresh",
+"c": "Automation",
+"apps": [
+"Excel",
+"PowerPoint",
+"Outlook"
+],
+"only": null,
+"sum": "Pull latest numbers, update the deck, distribute — every week.",
+"where": "Cowork scheduled prompt.",
+"why": "Recurring, multi-app and action-taking. Cowork can edit an existing deck in OneDrive/SharePoint in place.",
+"p": "Every Friday at 4pm, refresh the S&OP deck from the latest demand and supply workbooks and email it to the S&OP council.",
+"cw": "The schedule runs automatically; actions may still pause for approval. It updates the deck in place (version history kept). The send needs your approval unless you pre-authorise it when you set up the task.",
+"status": "Documented",
+"src": [
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "Manage Copilot Cowork for your organization",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-admin-governance"
+}
+]
+},
+{
+"id": 53,
+"s": "ext",
+"v": "cowork",
+"flag": "Test in your tenant",
+"t": "Kick off an initiative in Teams",
+"c": "Collaboration",
+"apps": [
+"Teams",
+"SharePoint"
+],
+"only": null,
+"sum": "Post kick-off notes and files into an existing channel or chat.",
+"where": "Cowork for posting. Creating the channel and adding members: do it in Teams unless you confirm Cowork can in your tenant.",
+"why": "Documented Cowork Teams actions are posting to channels and chats; creating channels and adding members is not documented.",
+"p": "Post the kick-off note with the charter link in the 'Plastic Neutrality 2027' channel and @mention the core team.",
+"cw": "Posting to an existing Teams channel/chat is documented. The full request including functional @mentions is not established by the cited documentation; test the post and mention behaviour in a test channel before treating the whole scenario as documented.",
+"status": "Pilot",
+"src": [
+{
+"title": "Copilot Cowork overview",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/"
+},
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+}
+]
+},
+{
+"id": 54,
+"s": "ext",
+"v": "cowork",
+"t": "Turn meeting notes or whiteboard photos into tracked actions",
+"c": "Meetings & calendar",
+"apps": [
+"Excel",
+"Outlook"
+],
+"only": null,
+"sum": "Upload typed notes or a photo, extract actions and owners, update a tracker and notify owners.",
+"where": "Cowork (upload the photo or file into the session).",
+"why": "Multi-step capture-to-action. This is a photo/file upload, not a OneNote integration.",
+"p": "Here's a photo of today's plant review whiteboard — extract the actions, add them to my tracker workbook and email owners.",
+"cw": "Executes; sends ask for approval.",
+"status": "Documented",
+"src": [
+{
+"title": "Use Copilot Cowork",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"
+},
+{
+"title": "Copilot Cowork common questions",
+"url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"
+}
+]
+}
+];
+
+var MATRIX=[
+["Capability","Copilot Chat","Copilot in the app","Cowork"],
+["Search & read emails, chats, files","yes","yes","yes"],
+["Summarise / draft / rewrite","yes","yes","yes"],
+["Work inside an open file (Excel grid, slide design)","part","yes","part"],
+["Send an email or post a message for you", "part|Microsoft's support page lists sending email directly from Copilot Chat as a Frontier feature, while later Message Center updates indicate wider rollout — confirm in your tenant", "part|You review and press Send", "yes|Sensitive actions pause for approval; session-level allow options exist"],
+["Move / organise documents", "no", "part|SharePoint library rules document move/copy actions; larger-scale work may use Copilot Credits. This is not proof of arbitrary one-off bulk moves.", "yes|Creates folders and reorganises files into new or existing folders; test large runs first. Cannot delete OneDrive/SharePoint files or folders."],
+["Save attachments into SharePoint/OneDrive","no","no","part|Not documented — test first"],
+["Create/accept/decline calendar events","part|Calendar Instructions (auto-accept/decline rules)","part|Outlook: schedule from thread, Calendar Instructions","yes"],
+["Create Outlook rules, folders and categories","yes|You confirm each rule","yes|Copilot pane in Outlook","yes"],
+["Bulk actions across many items","part|Via Outlook rules (future mail only)","part|Outlook rules; Copilot in Excel within one workbook","yes"],
+["Multi-app, multi-step workflows","no","no","yes"],
+["Run on a schedule", "yes|Up to 10 scheduled prompts; results in Copilot, optional email notification", "part|Scheduled prompts from Copilot in Teams and Outlook", "yes|Up to 25 scheduled prompts"],
+["Run when an event happens (trigger)", "part|Calendar Instructions for invites (Copilot app)", "part|Calendar Instructions for invites", "yes|Incoming email or Teams message; drafts for approval by default"],
+["Several deliverables in one request","no","no","yes"],
+["Live meeting assistance", "no", "yes|Teams only", "no|Not documented; Meetings skill covers preparation"],
+["Create Microsoft Forms", "yes|Create a form from the Copilot app", "yes|Copilot in Forms", "part|Not documented"],
+["Build and share an interactive app","no","no","part|Frontier preview only"],
+["Transact in ERP / line-of-business apps","no","no","part|Via approved connector"],
+["Query Power BI data", "yes|Power BI answers in Copilot Chat (GA); needs Copilot licence and report access", "yes|Power BI Copilot pane; needs Fabric F2+/Premium P1+ capacity", "yes|Fabric IQ plugin (GA); no extra Fabric capacity needed; no source citations yet"],
+["Licensing and cost", "part|Depends on the user's Microsoft 365 subscription and Chat experience", "yes|'Everyday AI' is covered by the per-user Copilot licence; some features need extra prerequisites (e.g. Fabric capacity for Power BI)", "part|'Advanced AI' (Cowork, Code, Autopilot, advanced SharePoint work) is billed by usage with Copilot Credits on top of the licence. Off until an admin creates a spending policy; usage billing rolls out in Q4 2026"]
+];
+
+var MSRC=[{"title": "Draft and send email using Microsoft Copilot Chat", "url": "https://support.microsoft.com/en-us/office/bizchat-overview/draft-and-send-email-using-microsoft-365-copilot-chat"}, {"title": "Get started with Copilot in SharePoint", "url": "https://learn.microsoft.com/en-us/sharepoint/copilot-in-sharepoint-get-started"}, {"title": "Automate workflows in a SharePoint document library", "url": "https://learn.microsoft.com/en-us/sharepoint/copilot-in-sharepoint-automate-workflows"}, {"title": "Copilot Cowork common questions", "url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-faq"}, {"title": "Schedule your most used Copilot prompts", "url": "https://support.microsoft.com/en-us/microsoft-365-copilot/schedule-your-most-used-copilot-prompts"}, {"title": "Use Copilot Cowork", "url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork"}, {"title": "Calendar Instructions in Outlook and Copilot", "url": "https://support.microsoft.com/en-us/outlook/calendar-instructions-in-outlook-and-copilot"}, {"title": "Create forms quickly with the Microsoft Copilot app", "url": "https://support.microsoft.com/en-us/microsoft-365-copilot/create-forms-quickly-with-the-microsoft-365-copilot-app"}, {"title": "Welcome to Copilot in Forms", "url": "https://support.microsoft.com/en-us/forms/welcome-to-copilot-in-forms"}, {"title": "Evolution of the Copilot pricing model", "url": "https://techcommunity.microsoft.com/blog/microsoft-copilot-blog/evolution-of-the-copilot-pricing-model/4559416"}, {"title": "Fabric IQ in Microsoft 365 Copilot Chat", "url": "https://learn.microsoft.com/en-us/fabric/iq/connectors/microsoft-365-copilot-overview"}, {"title": "Fabric IQ in Copilot Cowork", "url": "https://learn.microsoft.com/en-us/fabric/iq/connectors/cowork-overview"}, {"title": "Use Microsoft Purview to manage data security & compliance for Microsoft 365 Copilot Cowork", "url": "https://learn.microsoft.com/en-us/purview/ai-copilot-cowork"}];
+var RULES=[
+{h:"Start in Copilot when…",items:["The output is an answer, summary or draft you will review","The work lives in one file or one app (Excel grid, a deck, one thread)","You'll press Send/Save yourself","You need something fast — in-app Copilot is usually quicker"]},
+{h:"Move to Cowork when…",items:["It spans two or more apps (e.g. email → workbook → Teams post)","It's bulk work on existing items: tens or hundreds of emails or files","It must recur and deliver somewhere, or fire on an incoming email or Teams message","You want several deliverables produced together and kept consistent","Note: 'Copilot answers, Cowork acts' is no longer clean-cut — Copilot in Outlook and SharePoint now takes single-app actions (rules, folders, RSVPs, auto-replies, library rules and views)"]},
+{h:"Cost hygiene",items:["Default every new use case to Copilot first; escalate only if it fails a 'must act' test","Keep a shortlist of approved Cowork scenarios per team","Re-test quarterly — Copilot gains new in-app actions often","Track Cowork usage by scenario to spot work that Copilot could absorb"]},
+{h:"Training your team",items:["Teach the 'where' first: which app has which Copilot feature","Share ready prompts (copy them from the cards in this playbook)","Run a 30-minute 'Copilot first' session before granting Cowork","Collect wins and add them as new scenarios"]},
+{h:"Watch-outs",items:["App-only features don't work from Copilot Chat — open the app","Copilot in SharePoint GA rollout began 30 Sept 2026; advanced work uses Copilot Credits. Microsoft's support page lists sending email directly from Copilot Chat as a Frontier feature, while later Message Center updates indicate wider rollout — confirm in your tenant. Preview opt-in/opt-out PowerShell settings for Copilot in SharePoint are honoured only until 1 November 2026. Prioritise inbox in Outlook is still rolling out. The COPILOT() Excel function was withdrawn on 14 Sept 2026","Cowork asks before sending, posting or changing shared content, but users can choose 'Always allow' for a session — set clear guidance on when that is acceptable","Cowork cannot delete files or folders in OneDrive/SharePoint; it can delete emails as part of inbox management","Microsoft Purview supports Cowork for sensitivity labels, data loss prevention (DLP), auditing, eDiscovery, retention, Insider Risk Management and communication compliance; data classification and Compliance Manager are not supported. Review your Purview policies before rolling Cowork out","Each card links to the Microsoft article it relies on; cards tagged 'Test in your tenant' should be piloted before you rely on them","Cowork is available only in supported regions and only when an admin has set up a billing policy — confirm both for your tenant before training teams","A documented capability is not the same as a reliable end-to-end workflow — test multi-step scenarios in your tenant","Always review numbers in generated decks and emails"]}
+];
+
+var $=function(s){return document.querySelector(s)};
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+var state={q:"",v:new Set(),app:new Set(),cat:new Set(),src:"all",st:new Set()};
+var STATUS_LABEL={Documented:"Documented",Preview:"Preview / rolling out",Pilot:"Pilot first"};
+var STATUS={Documented:"Stated in a current Microsoft article and generally available",Preview:"Preview, Frontier, or generally available but still rolling out — may not be in your tenant yet",Pilot:"Each step is documented, but Microsoft doesn't describe this workflow end to end — pilot on a small set first"};
+
+/* KPIs */
+(function(){
+  var k=$("#kpis");
+  var counts={copilot:0,hybrid:0,cowork:0};S.forEach(function(x){counts[x.v]++});
+  var only=S.filter(function(x){return x.only}).length;
+  [[S.length,"Scenarios"],[counts.copilot,"Copilot is enough"],[counts.hybrid,"Copilot drafts, Cowork finishes"],[counts.cowork,"Need Cowork"],[only,"App-specific features"]].forEach(function(r){
+    var d=el("div","kpi");d.appendChild(el("b",null,String(r[0])));d.appendChild(el("span",null,r[1]));k.appendChild(d)});
+})();
+
+/* legend */
+Object.keys(VERDICTS).forEach(function(k){
+  var d=el("div","item bar-"+k);var h=el("h4");h.appendChild(el("span","badge v-"+k,VERDICTS[k].label));d.appendChild(h);d.appendChild(el("p",null,VERDICTS[k].desc));$("#legend").appendChild(d)});
+
+/* chips */
+var allApps=[];S.forEach(function(x){x.apps.forEach(function(a){if(allApps.indexOf(a)<0)allApps.push(a)})});
+var appOrder=["Copilot Chat","Outlook","Teams","Word","Excel","PowerPoint","SharePoint","OneDrive"];
+allApps.sort(function(a,b){var ia=appOrder.indexOf(a),ib=appOrder.indexOf(b);ia=ia<0?99:ia;ib=ib<0?99:ib;return ia-ib||a.localeCompare(b)});
+function mkChips(container,items,set,labelFn){
+  items.forEach(function(it){var b=el("button","chip",labelFn?labelFn(it):it);b.type="button";
+    b.addEventListener("click",function(){if(set.has(it)){set.delete(it);b.classList.remove("on")}else{set.add(it);b.classList.add("on")}render()});container.appendChild(b)})}
+mkChips($("#f-verdict"),Object.keys(VERDICTS),state.v,function(k){return VERDICTS[k].label});
+mkChips($("#f-cat"),CATS,state.cat);
+mkChips($("#f-status"),Object.keys(STATUS),state.st,function(k){return STATUS_LABEL[k]});
+[["all","All scenarios"],["core","Core set"],["ext","Additional ideas"],["only","App-only features"],["flag","Preview, prerequisites or test first"]].forEach(function(o,i){
+  var b=el("button","chip"+(i===0?" on":""),o[1]);b.type="button";b.dataset.src=o[0];
+  b.addEventListener("click",function(){state.src=o[0];document.querySelectorAll("#f-only .chip").forEach(function(c){c.classList.toggle("on",c.dataset.src===o[0])});render()});
+  $("#f-only").appendChild(b)});
+
+$("#q").addEventListener("input",function(e){state.q=e.target.value.toLowerCase();render()});
+$("#reset").addEventListener("click",function(){state.q="";$("#q").value="";state.v.clear();state.cat.clear();state.st.clear();state.src="all";
+  document.querySelectorAll(".controls .chip").forEach(function(c){c.classList.toggle("on",c.dataset.src==="all")});render()});
+
+function toast(){var t=$("#toast");t.classList.add("show");setTimeout(function(){t.classList.remove("show")},1400)}
+function copyText(txt){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(toast,fallback)}else fallback();
+  function fallback(){var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast()}catch(e){}document.body.removeChild(ta)}}
+
+function card(x){
+  var c=el("article","card bar-"+x.v);
+  var top=el("div","top");top.appendChild(el("h3",null,x.t));top.appendChild(el("span","badge v-"+x.v,VERDICTS[x.v].label));c.appendChild(top);
+  c.appendChild(el("p","sum",x.sum));
+  var tags=el("div","tags");
+  if(x.only)tags.appendChild(el("span","tag only","App-only: "+x.only));
+  x.apps.forEach(function(a){tags.appendChild(el("span","tag",a))});
+  tags.appendChild(el("span","tag",x.c));
+  if(x.s==="ext")tags.appendChild(el("span","tag ext","Additional idea"));
+  if(x.flag)tags.appendChild(el("span","tag flag",x.flag));
+  if(x.status){var stt=el("span","st st-"+x.status,STATUS_LABEL[x.status]||x.status);stt.title=STATUS[x.status]||"";tags.insertBefore(stt,tags.firstChild)}
+  c.appendChild(tags);
+  var d=el("details");d.appendChild(el("summary",null,"Where, why & prompt"));
+  var dl=el("div","dl");
+  [["Where to run it",x.where],["Why this verdict",x.why],["What Cowork adds",x.cw]].forEach(function(r){var w=el("div");w.appendChild(el("b",null,r[0]));w.appendChild(el("span",null,r[1]));dl.appendChild(w)});
+  if(x.p&&x.p!=="—"){var w=el("div");w.appendChild(el("b",null,"Example prompt"));w.appendChild(el("div","prompt",x.p));
+    var btn=el("button","copy","Copy prompt");btn.type="button";btn.addEventListener("click",function(){copyText(x.p)});w.appendChild(btn);dl.appendChild(w)}
+  d.appendChild(dl);c.appendChild(d);
+  if(x.src&&x.src.length){var ci=el("div","cites");ci.appendChild(document.createTextNode("Microsoft source: "));x.src.forEach(function(r,i){var a=el("a",null,"["+(i+1)+"] "+r.title);a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";ci.appendChild(a)});c.appendChild(ci)}
+  else{c.appendChild(el("div","cites","No Microsoft article found for this scenario — test in your tenant."))}
+  return c}
+
+function match(x){
+  if(state.v.size&&!state.v.has(x.v))return false;
+  if(state.cat.size&&!state.cat.has(x.c))return false;
+  if(state.st.size&&!state.st.has(x.status))return false;
+  if(state.src==="core"&&x.s!=="core")return false;
+  if(state.src==="ext"&&x.s!=="ext")return false;
+  if(state.src==="only"&&!x.only)return false;
+  if(state.src==="flag"&&!x.flag)return false;
+  if(state.q){var hay=[x.status||"",x.flag||"",x.t,x.sum,x.where,x.why,x.p,x.cw,x.c,x.apps.join(" ")].join(" ").toLowerCase();if(hay.indexOf(state.q)<0)return false}
+  return true}
+
+function render(){
+  var g=$("#grid");g.textContent="";
+  var order={copilot:0,hybrid:1,cowork:2};
+  var list=S.filter(match).sort(function(a,b){return order[a.v]-order[b.v]||a.id-b.id});
+  list.forEach(function(x){g.appendChild(card(x))});
+  if(!list.length)g.appendChild(el("div","empty panel","No scenarios match these filters."));
+  $("#resultCount").textContent="Showing "+list.length+" of "+S.length+" scenarios";
+}
+render();
+
+/* by app */
+(function(){
+  var ag=$("#appGrid");
+  allApps.forEach(function(a){
+    var items=S.filter(function(x){return x.apps.indexOf(a)>=0});
+    var p=el("div","panel");var h=el("h3",null,a);h.appendChild(el("span","count",items.length+" scenarios"));p.appendChild(h);
+    var ul=el("ul");
+    items.forEach(function(x){var li=el("li");li.appendChild(el("span","badge v-"+x.v,VERDICTS[x.v].label));li.appendChild(document.createTextNode(" "+x.t));
+      if(x.only===a){li.appendChild(document.createTextNode(" "));li.appendChild(el("span","tag only","App-only"))}ul.appendChild(li)});
+    p.appendChild(ul);ag.appendChild(p)})
+})();
+
+/* matrix */
+(function(){
+  var t=$("#matrixTbl");var th=el("thead");var tr=el("tr");MATRIX[0].forEach(function(h){tr.appendChild(el("th",null,h))});th.appendChild(tr);t.appendChild(th);
+  var tb=el("tbody");
+  MATRIX.slice(1).forEach(function(r){var tr=el("tr");tr.appendChild(el("td",null,r[0]));
+    r.slice(1).forEach(function(v){var parts=v.split("|");var td=el("td");var lab={yes:"✔ Yes",part:"◐ Partly",no:"✖ No"}[parts[0]];
+      td.appendChild(el("span",parts[0],lab));if(parts[1]){td.appendChild(el("div",null,parts[1])).style.fontSize=".82rem"}tr.appendChild(td)});tb.appendChild(tr)});
+  t.appendChild(tb)})();
+
+/* rules */
+RULES.forEach(function(r){var p=el("div","panel");p.appendChild(el("h3",null,r.h));var ul=el("ul");r.items.forEach(function(i){ul.appendChild(el("li",null,i))});p.appendChild(ul);$("#rulesGrid").appendChild(p)});
+
+/* audience line: set to "" to remove customer-specific branding */
+var AUDIENCE="";
+if(AUDIENCE){document.getElementById("audience").textContent=AUDIENCE+" "}
+/* source lists */
+function srcList(id,arr){var ol=document.getElementById(id);arr.forEach(function(r){var li=el("li");var a=el("a",null,r.title);a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";li.appendChild(a);ol.appendChild(li)})}
+srcList("msrc",MSRC);
+(function(){var seen={},all=[];S.forEach(function(x){(x.src||[]).forEach(function(r){if(!seen[r.url]){seen[r.url]=1;all.push(r)}})});MSRC.forEach(function(r){if(!seen[r.url]){seen[r.url]=1;all.push(r)}});all.sort(function(a,b){return a.title.localeCompare(b.title)});srcList("allsrc",all)})();
+/* wizard */
+(function(){
+  var Q=[
+   {k:"act",q:"Does something need to be DONE for you (send, move, file, create, accept/decline) — not just drafted or answered?"},
+   {k:"multi",q:"Does it span two or more apps, or many items (tens of emails/files)?"},
+   {k:"auto",q:"Must it run on a schedule or automatically when something happens?"},
+   {k:"risk",q:"Does it touch sensitive data, send to external people, or would a wrong action be hard to undo?"}];
+  var ans={};var w=$("#wiz");
+  Q.forEach(function(q){var d=el("div","q");d.appendChild(el("p",null,q.q));var o=el("div","opts");
+    ["Yes","No"].forEach(function(lbl){var b=el("button","opt",lbl);b.type="button";b.addEventListener("click",function(){ans[q.k]=lbl==="Yes";o.querySelectorAll(".opt").forEach(function(x){x.classList.remove("on")});b.classList.add("on");decide()});o.appendChild(b)});
+    d.appendChild(o);w.appendChild(d)});
+  var res=el("div","result");w.appendChild(res);
+  var rb=el("button","linkbtn","Start over");rb.type="button";rb.addEventListener("click",function(){ans={};w.querySelectorAll(".opt").forEach(function(x){x.classList.remove("on")});res.className="result"});w.appendChild(rb);
+  function decide(){
+    if(Object.keys(ans).length<4)return;
+    var v,msg;
+    if(ans.act&&(ans.multi||ans.auto)){v="cowork";msg="This is classic Cowork work: it takes action across apps or in bulk, or must act on a schedule or trigger. Write the prompt with recipients, sources, time window and the output format."}
+    else if(ans.auto&&ans.multi){v="hybrid";msg="Start with a Copilot scheduled prompt (Copilot Chat, Teams or Outlook; up to 10) — it re-runs the summary for you to read. Move to Cowork only if the result must be sent, posted or saved somewhere automatically, or must fire on an incoming email or Teams message."}
+    else if(ans.auto){v="copilot";msg="Use a Copilot scheduled prompt (Copilot Chat, Teams or Outlook; up to 10). It re-runs on your schedule and shows the result in Copilot, with an optional email notification. For meeting invites, Outlook Calendar Instructions can accept or decline automatically. You only need Cowork if something must be sent, posted or changed on each run. If it must start when an email or Teams message arrives, that's a Cowork event-driven task."}
+    else if(ans.act&&!ans.multi){v="hybrid";msg="Try the app's own Copilot first (e.g. Outlook 'Schedule with Copilot', Outlook rules and auto-replies, SharePoint library rules and views, Excel's Copilot pane). Escalate to Cowork only if the app can't complete the action."}
+    else if(ans.multi){v="hybrid";msg="Copilot Chat can read across apps and give you the answer or draft. Use Cowork only if you also want files produced or messages sent."}
+    else {v="copilot";msg="Stay with Copilot — in the app where the work lives, or Copilot Chat. It's included in your licence and usually faster."}
+    res.className="result show panel bar-"+v;res.textContent="";
+    var h=el("h3");h.appendChild(el("span","badge v-"+v,VERDICTS[v].label));res.appendChild(h);res.appendChild(el("p",null,msg));
+    if(v==="cowork"||v==="hybrid"){res.appendChild(el("p",null,"Cost note: under Microsoft's September 2026 pricing model, Cowork is 'advanced AI' — billed by usage through Copilot Credits on top of the Copilot licence — and it stays off until an admin creates a spending policy."))}
+    if(ans.risk){res.appendChild(el("p",null,"Governance check: keep approvals on for every action (don't use 'Always allow'), start with a small test set, confirm who reviews the output, and prefer drafts over sends. If the action can't be reversed, do it manually or through a governed Power Automate flow."))}
+    var ex=S.filter(function(x){return x.v===v}).slice(0,4);
+    if(ex.length){res.appendChild(el("b",null,"Similar scenarios:"));var ul=el("ul");ex.forEach(function(x){ul.appendChild(el("li",null,x.t))});res.appendChild(ul)}
+  }
+})();
+
+/* tabs: arrow-key navigation */
+(function(){var tabs=Array.prototype.slice.call(document.querySelectorAll("nav.tabs button"));
+tabs.forEach(function(t,i){t.addEventListener("keydown",function(e){var n=null;
+if(e.key==="ArrowRight")n=(i+1)%tabs.length;else if(e.key==="ArrowLeft")n=(i-1+tabs.length)%tabs.length;else if(e.key==="Home")n=0;else if(e.key==="End")n=tabs.length-1;
+if(n!==null){e.preventDefault();tabs[n].focus();tabs[n].click()}})})})();
+/* tabs */
+document.querySelectorAll("nav.tabs button").forEach(function(b){b.addEventListener("click",function(){
+  document.querySelectorAll("nav.tabs button").forEach(function(x){x.classList.toggle("active",x===b);x.setAttribute("aria-selected",x===b?"true":"false");x.tabIndex=x===b?0:-1});
+  document.querySelectorAll("section.view").forEach(function(s){s.classList.toggle("active",s.id===b.dataset.view)});
+  window.scrollTo({top:0,behavior:"smooth"})})});
+})();
+</script>
+</body>
+</html>
